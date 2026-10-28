@@ -1140,6 +1140,7 @@ function finish(completed) {
   s.stats.coinsEarned = (s.stats.coinsEarned || 0) + coins;
   G.persist();
   G.Analytics.levelEnd(cfg, { success, stars, errors: st.stats.errors, score: st.score, acc });
+  G.Cloud.flush();
   const unlocked = G.checkAchievements();
   const story = firstClear && cfg.boss ? G.STORY.outro[cfg.city.id] : null;
   const challengeCode = !cfg.daily && !cfg.event ? G.makeChallengeCode(cfg.g, st.seed, st.score) : null;
@@ -1172,6 +1173,7 @@ function finishEndless() {
   s.stats.coinsEarned = (s.stats.coinsEarned || 0) + coins;
   G.persist();
   G.Analytics.levelEnd(st.cfg, { success: true, stars: 0, errors: st.stats.errors, score: st.score, acc });
+  G.Cloud.flush();
   const unlocked = G.checkAchievements();
   G.Audio.play(record ? 'win' : 'lose', { onEnd: () => G.Audio.play('map') });
   G.UI.endlessResults({ cfg: st.cfg, score: st.score, stations, record, caught: st.caught, acc, bestCombo: st.bestCombo, coins, xp, perks: st.perks.slice(), newAlbum: st.newAlbum.slice(), rankUp: G.rankOf(s.xp).index > prevRank, unlocked });

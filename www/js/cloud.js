@@ -27,17 +27,22 @@ G.Cloud = (() => {
       if (e && (e.code === 'invalid_argument' || e.code === 'revoked' || e.code === 'not_granted')) {
         // Ce visiteur ne peut pas écrire ici (lecture seule) : on reste sur l'appareil
         doc = null;
-        state = 'readonly';
+        setState('readonly');
       } else dirty = true;
     }
     writing = false;
     if (dirty && doc) schedule();
   }
 
+  // Au plus une écriture toutes les DELAY ms, même pendant une partie où la sauvegarde change sans arrêt
   function schedule() {
-    if (!doc) return;
-    clearTimeout(timer);
+    if (!doc || timer) return;
     timer = setTimeout(push, DELAY);
+  }
+
+  function setState(s) {
+    state = s;
+    document.dispatchEvent(new Event('ticketsvp-save-status'));
   }
 
   function flush() {
@@ -66,20 +71,17 @@ G.Cloud = (() => {
 
   async function init() {
     const c = window.claude;
-    if (!c || typeof c.use !== 'function') return;
-    state = 'connecting';
+    if (!c || typeof c.use !== 'function') return setState('local');
+    setState('connecting');
     try {
       const [db, user] = await Promise.all([c.use('db'), c.use('user')]);
       const id = db && user ? await user.id() : null;
-      if (!id) {
-        state = 'local';
-        return;
-      }
+      if (!id) return setState('local');
       const ref = db.doc('data/users/' + id + '/save');
       const snap = await ref.get();
       const remote = snap.exists ? snap.data() : null;
       doc = ref;
-      state = 'online';
+      setState('online');
       // L'expérience ne fait que monter : la partie la plus avancée gagne, puis la plus récente
       const localT = G.save.updatedAt || 0;
       const rs = remote && remote.save;
@@ -96,7 +98,7 @@ G.Cloud = (() => {
       document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flush(); });
     } catch (e) {
       doc = null;
-      state = 'local';
+      setState('local');
     }
   }
 
@@ -128,5 +130,8 @@ G.Cloud = (() => {
     exportCode,
     importCode,
     status: () => state,
+    // La partie survivra-t-elle à la fermeture de la page ?
+    persistent: () => state === 'online' || G.storageOK,
+    flush,
   };
 })();

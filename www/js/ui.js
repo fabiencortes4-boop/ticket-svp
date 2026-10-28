@@ -98,11 +98,18 @@ UI.title = () => {
     <div class="title-actions">
       <button class="btn btn-primary btn-xl" data-play>${G.icon('play')} Jouer</button>
       ${G.Install.button()}
+      <div class="title-save" data-titlesave></div>
       <p class="title-hint">${G.Tester.badge()}Le son démarre au premier toucher</p>
     </div>
     <footer class="title-foot">v${G.VERSION} · Graphismes et musique 8 bits créés par le code</footer>`;
   G.showScreen(root);
   G.Install.bind(root);
+  const showSave = () => {
+    const box = G.$('[data-titlesave]', root);
+    if (box) box.innerHTML = saveWarnHtml();
+  };
+  showSave();
+  document.addEventListener('ticketsvp-save-status', showSave);
   G.$('[data-play]', root).addEventListener('click', () => {
     G.Audio.init();
     G.Audio.sfx('door');
@@ -632,11 +639,36 @@ UI.shop = (tab = 'tools') => {
 
 /* ---------- Réglages ---------- */
 const TEXT_SIZES = { m: 'Normal', l: 'Grand', xl: 'Très grand' };
+
+/* Où la partie est gardée : online | connecting | local | readonly | nostore */
+function saveState() {
+  const st = G.Cloud.status();
+  if (st === 'online' || st === 'connecting') return st;
+  return G.storageOK ? st : 'nostore';
+}
+/* Avertissement + bouton code, quand la partie ne survivra pas à la fermeture de la page */
+function saveWarnHtml() {
+  if (saveState() !== 'nostore') return '';
+  return `<div class="save-warn">${G.icon('lock')}<span><b>Partie non enregistrée ici</b><small>Ce navigateur efface les données. Copie ton code de sauvegarde pour ne rien perdre.</small></span><button class="btn btn-small" data-savecode>Copier</button></div>`;
+}
+function showSaveCode() {
+  const code = G.Cloud.exportCode();
+  const m = G.modal(`<div class="report"><h2>Code de sauvegarde</h2><p>Copie ce code et colle-le dans « Charger un code de sauvegarde » (Réglages) la prochaine fois, ou sur ton autre appareil. Garde-le pour toi : il contient toute ta partie.</p><textarea class="code-box" readonly rows="5">${code}</textarea><button class="btn btn-primary" data-copy>${G.icon('share')} Copier le code</button><p class="share-preview" data-cprev hidden></p></div>`);
+  G.$('.code-box', m.el).addEventListener('focus', (e) => e.target.select());
+  G.$('[data-copy]', m.el).addEventListener('click', () => copyText(code, G.$('[data-cprev]', m.el)));
+}
+document.addEventListener('click', (ev) => {
+  if (ev.target.closest('[data-savecode]')) {
+    ev.stopPropagation();
+    showSaveCode();
+  }
+}, true);
 const SAVE_STATUS = {
   online: '<b>Sauvegarde en ligne active</b><small>Ta partie te suit sur tous tes appareils où tu es connecté à claude.ai.</small>',
   connecting: '<b>Connexion à la sauvegarde en ligne…</b><small>En attendant, ta partie est gardée sur cet appareil.</small>',
   readonly: '<b>Sauvegardée sur cet appareil</b><small>Ce lien ne permet pas la sauvegarde en ligne : utilise le code de sauvegarde pour changer d\'appareil.</small>',
   local: '<b>Sauvegardée sur cet appareil</b><small>Utilise le code de sauvegarde pour changer d\'appareil.</small>',
+  nostore: '<b>Partie non enregistrée ici</b><small>Ce navigateur efface les données (navigation privée, navigateur intégré d\'une appli…). Ouvre le lien dans Safari ou Chrome, ou copie ton code de sauvegarde avant de quitter.</small>',
 };
 
 /* Premier lancement : consentement aux statistiques (RGPD) */
@@ -678,7 +710,7 @@ UI.settings = () => {
       </div>
       <h3 class="set-h">Sauvegarde</h3>
       <div class="set-group">
-        <div class="set-row set-info">${G.icon(G.Cloud.status() === 'online' ? 'check' : 'lock')}<span>${SAVE_STATUS[G.Cloud.status()] || SAVE_STATUS.local}</span></div>
+        <div class="set-row set-info ${saveState() === 'nostore' ? 'danger' : ''}">${G.icon(saveState() === 'online' ? 'check' : 'lock')}<span>${SAVE_STATUS[saveState()] || SAVE_STATUS.local}</span></div>
         <button class="set-row" data-export>${G.icon('share')}<span>Copier mon code de sauvegarde<small>Pour reprendre ta partie sur un autre appareil</small></span>${G.icon('back', 'flip')}</button>
         <button class="set-row" data-import>${G.icon('chest')}<span>Charger un code de sauvegarde</span>${G.icon('back', 'flip')}</button>
       </div>
@@ -736,12 +768,7 @@ UI.settings = () => {
       G.toast('Mode testeur désactivé.');
       UI.settings();
     }
-    if (ev.target.closest('[data-export]')) {
-      const code = G.Cloud.exportCode();
-      const m = G.modal(`<div class="report"><h2>Code de sauvegarde</h2><p>Copie ce code et colle-le dans « Charger un code de sauvegarde » sur ton autre appareil. Garde-le pour toi : il contient toute ta partie.</p><textarea class="code-box" readonly rows="5">${code}</textarea><button class="btn btn-primary" data-copy>${G.icon('share')} Copier le code</button><p class="share-preview" data-cprev hidden></p></div>`);
-      G.$('.code-box', m.el).addEventListener('focus', (e) => e.target.select());
-      G.$('[data-copy]', m.el).addEventListener('click', () => copyText(code, G.$('[data-cprev]', m.el)));
-    }
+    if (ev.target.closest('[data-export]')) showSaveCode();
     if (ev.target.closest('[data-import]')) {
       const m = G.modal(`<div class="report"><h2>Charger une partie</h2><p>Colle ici ton code de sauvegarde. <b>La partie de cet appareil sera remplacée.</b></p><textarea class="code-box" rows="5" placeholder="TSVP1-…" autocomplete="off" spellcheck="false"></textarea><p class="form-err" data-err hidden></p><button class="btn btn-primary" data-load>Charger cette partie</button><button class="btn btn-ghost" data-no>Annuler</button></div>`);
       G.$('[data-no]', m.el).addEventListener('click', () => m.close());
@@ -817,6 +844,7 @@ UI.results = (r) => {
       ${r.newAlbum.length ? `<div class="res-album"><b>Nouveau dans l'album</b><div>${r.newAlbum.map((id) => { const sp = G.SPECIALS.find((x) => x.id === id); return `<span class="ra-item"><span class="ra-face">${G.drawPerson(previewLook(sp), { photo: true })}</span>${sp.name}</span>`; }).join('')}</div></div>` : ''}
       ${r.rankUp ? `<div class="res-rank">${G.icon('trophy')} Promotion : <b>${G.rankOf(G.save.xp).name}</b></div>` : ''}
       ${achievementsBlock(r.unlocked)}
+      ${saveWarnHtml()}
       ${r.firstClear && cfg.boss ? `<div class="res-rank">${G.icon('gold')} Boss vaincu : +5 tickets d'or</div>` : ''}
       ${r.rushInfo ? `<div class="res-rank">${G.icon('clock')} ${r.rushInfo.done}/${r.rushInfo.target} passagers bien contrôlés${r.rushInfo.done >= r.rushInfo.target ? '' : ' : objectif manqué'}</div>` : ''}
       ${r.mystery && r.mystery.solved !== null && r.mystery.solved !== undefined ? `<div class="res-rank">${G.icon('camera')} ${r.mystery.solved ? 'Coupable démasqué : +500 points' : 'Le coupable a filé…'}</div>` : ''}
@@ -886,6 +914,7 @@ UI.endlessResults = (r) => {
         <div><b>+${G.fmt(r.xp)}</b><span>XP</span></div>
       </div>
       ${achievementsBlock(r.unlocked)}
+      ${saveWarnHtml()}
       ${perkNames.length ? `<div class="end-perks"><b>Bonus choisis</b><div>${perkNames.map((p) => `<span>${G.icon(p.icon)}${p.name}</span>`).join('')}</div></div>` : ''}
       ${r.rankUp ? `<div class="res-rank">${G.icon('trophy')} Promotion : <b>${G.rankOf(G.save.xp).name}</b></div>` : ''}
       <div class="res-coins"><span class="money coins">${G.icon('coin')}<b data-rcoins>+${G.fmt(r.coins)}</b></span>

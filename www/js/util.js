@@ -114,6 +114,25 @@ G.mergeSave = (data) => {
   return base;
 };
 
+/* Le navigateur garde-t-il vraiment les données ? (faux en navigation privée ou dans certaines applis) */
+G.storageOK = (() => {
+  try {
+    const k = 'ticketsvp.test';
+    localStorage.setItem(k, '1');
+    const ok = localStorage.getItem(k) === '1';
+    localStorage.removeItem(k);
+    return ok;
+  } catch (e) {
+    return false;
+  }
+})();
+// Demande au navigateur de ne pas effacer la partie quand il manque de place
+try {
+  if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
+} catch (e) {
+  /* rien */
+}
+
 G.load = () => {
   let data = null;
   try {
