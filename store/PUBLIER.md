@@ -22,21 +22,16 @@ Ce guide part du dépôt tel qu'il est. Les étapes marquées **(toi)** demanden
 
 ## 3. Construire l'appli Android (toi)
 
+Le projet Android est déjà dans le dépôt (`android/`), avec les icônes, l'écran de démarrage et l'identifiant AdMob **de test**.
+
 ```bash
 cd ticket-svp
 npm install
-npm run android:init
+npm run android:apk     # APK de test, à installer à la main (voir store/INSTALLER-APK.md)
 ```
 
-Puis dans `android/app/src/main/AndroidManifest.xml`, à l'intérieur de `<application>` :
-
-```xml
-<meta-data
-    android:name="com.google.android.gms.ads.APPLICATION_ID"
-    android:value="ca-app-pub-XXXX~YYYY"/>
-```
-
-(En test, l'identifiant public de Google `ca-app-pub-3940256099942544~3347511713` fonctionne.)
+Avant la publication, dans `android/app/src/main/AndroidManifest.xml`, remplace l'identifiant de test
+`ca-app-pub-3940256099942544~3347511713` par ton identifiant d'application AdMob.
 
 Version : dans `android/app/build.gradle`, augmente `versionCode` (entier) et `versionName` (`"1.1.0"`) à chaque envoi.
 
@@ -46,7 +41,8 @@ Clé de signature, à créer une seule fois et **à sauvegarder hors de l'ordina
 keytool -genkey -v -keystore ticketsvp.jks -alias ticketsvp -keyalg RSA -keysize 2048 -validity 10000
 ```
 
-Ensuite : `npm run android:open`, puis *Build › Generate Signed App Bundle* avec cette clé → fichier `.aab`.
+Ensuite : `npm run android:open`, puis *Build › Generate Signed App Bundle* avec **cette** clé → fichier `.aab`.
+(La clé `android/keystore/ticketsvp-test.jks` du dépôt ne sert qu'aux APK de test : ne l'envoie jamais à Google Play.)
 
 ## 4. Fiche Play Store
 

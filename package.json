@@ -11,7 +11,8 @@
     "android:build": "npx cap sync android && cd android && ./gradlew bundleRelease",
     "ios:init": "npx cap add ios",
     "ios:sync": "npx cap sync ios",
-    "ios:open": "npx cap open ios"
+    "ios:open": "npx cap open ios",
+    "android:apk": "npx cap sync android && cd android && ./gradlew assembleRelease && mkdir -p ../dist && cp app/build/outputs/apk/release/app-release.apk ../dist/ticket-svp-$npm_package_version.apk"
   },
   "devDependencies": {
     "@capacitor/android": "^6.1.2",

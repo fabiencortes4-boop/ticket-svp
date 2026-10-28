@@ -35,6 +35,8 @@ Dans l'application Android, les **vraies pubs AdMob** et le formulaire de consen
 
 **https://fabiencortes4-boop.github.io/ticket-svp/** — le site est republié automatiquement à chaque envoi sur `main` (`.github/workflows/pages.yml`).
 
+**APK Android** : https://fabiencortes4-boop.github.io/ticket-svp/ticket-svp.apk
+
 ## Installer et tester sans Play Store
 
 Depuis le site en ligne, le jeu s'installe comme une appli :
@@ -45,6 +47,15 @@ Depuis le site en ligne, le jeu s'installe comme une appli :
 Une fois installé, il s'ouvre en plein écran, marche hors ligne et garde la partie.
 
 **Lien testeur** : ajouter `?testeur` à l'adresse (par exemple `…/ticket-svp/?testeur`) débloque toutes les villes, les boss et la Ligne infinie, et offre 5 000 pièces et 50 tickets d'or. Un badge « Mode testeur » s'affiche et le rapport de test le mentionne. `?testeur=off` ou les Réglages le désactivent.
+
+## APK Android (installation directe)
+
+```bash
+npm install
+npm run android:apk      # crée dist/ticket-svp-<version>.apk (Java 17+ et SDK Android requis)
+```
+
+L'APK publié (`dist/`) est signé avec une clé de test gardée hors de ce dépôt public : une nouvelle version s'installe par-dessus l'ancienne sans perdre la partie. Sans cette clé, `npm run android:apk` échoue à l'étape de signature : retire le bloc `signingConfigs` de `android/app/build.gradle` ou crée ta propre clé. Le guide à envoyer aux testeurs est dans [`store/INSTALLER-APK.md`](store/INSTALLER-APK.md). Pour Google Play, utiliser une clé d'importation séparée (voir `store/PUBLIER.md`).
 
 ## Lancer le jeu
 
@@ -81,6 +92,7 @@ www/
   js/ui.js           Écrans : titre, carte, défi du jour, album, boutique, réglages, résultats
   js/game.js         Boucle d'un service, HUD, outils, tutoriel
   js/main.js         Démarrage
+android/               Projet Android natif (Capacitor) : icônes, écran de démarrage, AdMob, signature de test
 tools/store-assets.js  Génère l'icône, la bannière et les captures Play Store
 store/                 Visuels Play Store et guide de publication (PUBLIER.md)
 ```

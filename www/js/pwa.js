@@ -16,7 +16,8 @@ G.Install = (() => {
 
   function init() {
     // Hors ligne : uniquement sur le vrai site (pas dans un aperçu intégré ni un fichier local)
-    if ('serviceWorker' in navigator && topLevel && /^https?:$/.test(location.protocol)) {
+    const native = window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform();
+    if ('serviceWorker' in navigator && topLevel && !native && /^https?:$/.test(location.protocol)) {
       navigator.serviceWorker.register('sw.js').catch(() => {});
     }
     window.addEventListener('beforeinstallprompt', (e) => {
