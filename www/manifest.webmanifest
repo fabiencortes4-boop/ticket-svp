@@ -1,0 +1,11 @@
+{
+  "name": "Ticket SVP !",
+  "short_name": "Ticket SVP",
+  "lang": "fr",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#182447",
+  "theme_color": "#1e2a4a",
+  "icons": [{ "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }]
+}

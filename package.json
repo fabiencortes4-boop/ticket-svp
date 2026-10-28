@@ -1,0 +1,25 @@
+{
+  "name": "ticket-svp",
+  "version": "1.1.0",
+  "private": true,
+  "description": "Ticket SVP ! — jeu mobile du contrôleur de métro (HTML5, Capacitor pour Android et iOS).",
+  "scripts": {
+    "start": "python3 -m http.server 8080 --directory www",
+    "android:init": "npx cap add android",
+    "android:sync": "npx cap sync android",
+    "android:open": "npx cap open android",
+    "android:build": "npx cap sync android && cd android && ./gradlew bundleRelease",
+    "ios:init": "npx cap add ios",
+    "ios:sync": "npx cap sync ios",
+    "ios:open": "npx cap open ios"
+  },
+  "devDependencies": {
+    "@capacitor/android": "^6.1.2",
+    "@capacitor/cli": "^6.1.2",
+    "@capacitor/ios": "^6.1.2"
+  },
+  "dependencies": {
+    "@capacitor-community/admob": "^6.0.0",
+    "@capacitor/core": "^6.1.2"
+  }
+}

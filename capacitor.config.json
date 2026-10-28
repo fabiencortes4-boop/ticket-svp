@@ -1,0 +1,12 @@
+{
+  "appId": "com.ticketsvp.game",
+  "appName": "Ticket SVP !",
+  "webDir": "www",
+  "android": {
+    "backgroundColor": "#182447"
+  },
+  "ios": {
+    "backgroundColor": "#182447",
+    "contentInset": "always"
+  }
+}
