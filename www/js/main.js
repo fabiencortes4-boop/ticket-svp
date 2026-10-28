@@ -3,6 +3,8 @@
 
 (function boot() {
   G.save = G.load();
+  G.Tester.init();
+  G.Install.init();
   G.applyAccess();
   G.Analytics.init();
   G.Ads.init();

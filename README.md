@@ -35,6 +35,17 @@ Dans l'application Android, les **vraies pubs AdMob** et le formulaire de consen
 
 **https://fabiencortes4-boop.github.io/ticket-svp/** — le site est republié automatiquement à chaque envoi sur `main` (`.github/workflows/pages.yml`).
 
+## Installer et tester sans Play Store
+
+Depuis le site en ligne, le jeu s'installe comme une appli :
+
+- **Android (Chrome)** : bouton « Installer l'appli » sur l'écran titre.
+- **iPhone et iPad** : le même bouton explique les gestes (Partager › Sur l'écran d'accueil).
+
+Une fois installé, il s'ouvre en plein écran, marche hors ligne et garde la partie.
+
+**Lien testeur** : ajouter `?testeur` à l'adresse (par exemple `…/ticket-svp/?testeur`) débloque toutes les villes, les boss et la Ligne infinie, et offre 5 000 pièces et 50 tickets d'or. Un badge « Mode testeur » s'affiche et le rapport de test le mentionne. `?testeur=off` ou les Réglages le désactivent.
+
 ## Lancer le jeu
 
 ```bash
@@ -50,12 +61,14 @@ Ou n'importe quel serveur statique pointé sur `www/`. Sur ordinateur : flèche 
 www/
   index.html
   privacy.html       Politique de confidentialité (à héberger pour la fiche Play)
+  sw.js              Service worker : le jeu installé marche hors ligne (liste FILES à tenir à jour)
   css/style.css      Mise en page, HUD, animations, accessibilité
   css/fonts.css      Polices locales (le jeu marche hors ligne)
   fonts/             Lilita One, Nunito, Press Start 2P (licence OFL)
   js/util.js         Hasard déterministe, dates, sauvegarde locale, accessibilité
   js/analytics.js    Statistiques anonymes, rapport de test, envoi Firebase si accepté
   js/cloud.js        Sauvegarde en ligne (lien claude.ai) et code de sauvegarde entre appareils
+  js/pwa.js          Installation sur l'écran d'accueil (Android, iPhone), mode testeur
   js/data.js         Villes, règles, passagers spéciaux, boutique, configuration des niveaux
   js/art.js          Dessin SVG des personnages, décors, icônes, logo
   js/art-extra.js    Chapeaux, tenues, accessoires, costumes et paysages supplémentaires

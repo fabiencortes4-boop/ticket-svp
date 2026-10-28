@@ -97,10 +97,12 @@ UI.title = () => {
     <div class="title-train"><div class="train">${trainSvg()}</div></div>
     <div class="title-actions">
       <button class="btn btn-primary btn-xl" data-play>${G.icon('play')} Jouer</button>
-      <p class="title-hint">Le son démarre au premier toucher</p>
+      ${G.Install.button()}
+      <p class="title-hint">${G.Tester.badge()}Le son démarre au premier toucher</p>
     </div>
     <footer class="title-foot">v${G.VERSION} · Graphismes et musique 8 bits créés par le code</footer>`;
   G.showScreen(root);
+  G.Install.bind(root);
   G.$('[data-play]', root).addEventListener('click', () => {
     G.Audio.init();
     G.Audio.sfx('door');
@@ -684,6 +686,8 @@ UI.settings = () => {
       <div class="set-group">
         <button class="set-row" data-tg="analytics">${G.icon('chart')}<span>Statistiques anonymes<small>Aide à équilibrer le jeu, sans aucun identifiant</small></span><i class="sw ${s.settings.analytics ? 'on' : ''}"></i></button>
         <button class="set-row" data-report>${G.icon('share')}<span>Rapport de test<small>À copier et envoyer au développeur</small></span>${G.icon('back', 'flip')}</button>
+        ${G.Install.canOffer() ? `<button class="set-row" data-install>${G.icon('chest')}<span>Installer l'appli<small>Icône sur l'écran d'accueil, jeu hors ligne</small></span>${G.icon('back', 'flip')}</button>` : ''}
+        ${G.Tester.on() ? `<button class="set-row" data-tester-off>${G.icon('star')}<span>Quitter le mode testeur<small>Les services réussis restent acquis</small></span>${G.icon('back', 'flip')}</button>` : ''}
         <a class="set-row" href="privacy.html" target="_blank" rel="noopener">${G.icon('lock')}<span>Politique de confidentialité</span>${G.icon('back', 'flip')}</a>
       </div>
       <h3 class="set-h">Statistiques</h3>
@@ -724,6 +728,13 @@ UI.settings = () => {
       G.applyAccess();
       G.Audio.sfx('click');
       G.$('.set-val', ts).textContent = TEXT_SIZES[s.settings.textSize];
+    }
+    if (ev.target.closest('[data-install]')) G.Install.prompt();
+    if (ev.target.closest('[data-tester-off]')) {
+      s.tester = false;
+      G.persist();
+      G.toast('Mode testeur désactivé.');
+      UI.settings();
     }
     if (ev.target.closest('[data-export]')) {
       const code = G.Cloud.exportCode();

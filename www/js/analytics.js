@@ -145,7 +145,7 @@ G.Analytics = (() => {
       if (ad.length) lines.push('Pubs : ' + ad.map(([k, n]) => `${k} ${n}`).join(', '));
       const q = Object.entries(data.quits);
       if (q.length) lines.push('Abandons : ' + q.map(([k, n]) => `${k} ${n}`).join(', '));
-      lines.push('Appareil : ' + `${window.innerWidth}×${window.innerHeight}`);
+      lines.push('Appareil : ' + `${window.innerWidth}×${window.innerHeight}` + (G.Install.standalone() ? ' · appli installée' : '') + (G.Tester.on() ? ' · mode testeur' : ''));
       return lines.join('\n');
     },
     reset() {

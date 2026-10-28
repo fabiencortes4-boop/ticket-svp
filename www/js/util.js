@@ -95,6 +95,10 @@ G.defaultSave = () => ({
   tutorialDone: false,
   endless: { best: 0, bestStation: 0, runs: 0 },
   achievements: {},
+  missions: null, // missions du jour { day, list }
+  eventDone: {}, // récompenses d'événement déjà reçues
+  tester: false, // mode testeur (lien ?testeur)
+  testerGift: false,
 });
 
 /* Fusionne une sauvegarde brute (locale, en ligne ou code) avec les valeurs par défaut */

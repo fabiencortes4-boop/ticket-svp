@@ -166,7 +166,7 @@ G.objectiveProgress = (o, s) => {
 G.ENDLESS_UNLOCK = 5; // débloquée après le service 6 du bus
 G.STATION_SIZE = 5;
 G.PERK_EVERY = 2; // un bonus au choix toutes les 2 stations
-G.isEndlessUnlocked = () => (G.save.levels[G.ENDLESS_UNLOCK] || 0) > 0;
+G.isEndlessUnlocked = () => G.save.tester || (G.save.levels[G.ENDLESS_UNLOCK] || 0) > 0;
 
 G.endlessConfig = (n) => {
   const cityIndex = Math.floor((n - 1) / 3) % G.CITIES.length;

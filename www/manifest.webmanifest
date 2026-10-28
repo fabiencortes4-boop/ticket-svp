@@ -1,11 +1,35 @@
 {
-  "name": "Ticket SVP !",
+  "id": "./",
+  "name": "Ticket SVP ! — Contrôleur de métro",
   "short_name": "Ticket SVP",
+  "description": "Contrôle les tickets, démasque les fraudeurs… et garde ton calme !",
   "lang": "fr",
   "start_url": "./index.html",
+  "scope": "./",
   "display": "standalone",
-  "orientation": "portrait",
   "background_color": "#182447",
   "theme_color": "#1e2a4a",
-  "icons": [{ "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }]
+  "categories": [
+    "games"
+  ],
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
 }
