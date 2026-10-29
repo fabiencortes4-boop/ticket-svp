@@ -3,7 +3,24 @@
 
 const G = (window.G = window.G || {});
 
-G.VERSION = '1.2.0';
+G.VERSION = '1.2.1';
+
+/* Filet de sécurité : si le jeu plante avant d'avoir affiché la carte (fichiers de deux versions mélangés
+   dans le cache, par exemple), on vide le cache hors ligne et on recharge, une seule fois par session. */
+window.addEventListener('error', () => {
+  if (G.healthy || !('serviceWorker' in navigator) || !window.caches) return;
+  try {
+    if (sessionStorage.getItem('ticketsvp-heal')) return;
+    sessionStorage.setItem('ticketsvp-heal', '1');
+  } catch (e) {
+    return;
+  }
+  navigator.serviceWorker.getRegistrations()
+    .then((rs) => Promise.all(rs.map((r) => r.unregister())))
+    .then(() => caches.keys())
+    .then((ks) => Promise.all(ks.map((k) => caches.delete(k))))
+    .finally(() => location.reload());
+});
 
 G.$ = (sel, root = document) => root.querySelector(sel);
 G.$$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));

@@ -18,7 +18,17 @@ G.Install = (() => {
     // Hors ligne : uniquement sur le vrai site (pas dans un aperçu intégré ni un fichier local)
     const native = window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform();
     if ('serviceWorker' in navigator && topLevel && !native && /^https?:$/.test(location.protocol)) {
-      navigator.serviceWorker.register('sw.js').catch(() => {});
+      const hadController = !!navigator.serviceWorker.controller;
+      navigator.serviceWorker.register('sw.js').then((reg) => {
+        // Une appli installée reste ouverte longtemps : on cherche une mise à jour à chaque retour au premier plan
+        document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') reg.update().catch(() => {}); });
+      }).catch(() => {});
+      // Nouvelle version installée : on recharge dès que le joueur n'est pas en plein service
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (!hadController) return;
+        if (G.$('.game-screen')) G.Install.pendingReload = true;
+        else location.reload();
+      });
     }
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();

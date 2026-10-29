@@ -5,6 +5,9 @@ const UI = (G.UI = {});
 
 /* ---------- Socle : écrans et fenêtres ---------- */
 G.showScreen = (el) => {
+  // Mise à jour reçue pendant un service : on l'applique au retour dans les menus
+  if (G.Install && G.Install.pendingReload && !el.classList.contains('game-screen')) return location.reload();
+  if (el.classList.contains('map-screen')) G.healthy = true;
   const host = G.$('#screens');
   const old = host.firstElementChild;
   host.appendChild(el);
