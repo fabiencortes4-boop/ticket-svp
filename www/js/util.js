@@ -3,7 +3,7 @@
 
 const G = (window.G = window.G || {});
 
-G.VERSION = '1.1.0';
+G.VERSION = '1.2.0';
 
 G.$ = (sel, root = document) => root.querySelector(sel);
 G.$$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
@@ -97,6 +97,10 @@ G.defaultSave = () => ({
   achievements: {},
   missions: null, // missions du jour { day, list }
   eventDone: {}, // récompenses d'événement déjà reçues
+  cos: { owned: [], stamp: 'classic', ink: 'classic', pet: 'none', deco: 'none' }, // cosmétiques achetés et portés
+  items: { coffee: 0, magnifier: 0, double: 0 }, // bonus à usage unique
+  collections: {}, // collections d'album récompensées
+  weekly: { week: 0, best: 0, plays: 0, rewarded: false }, // défi de la semaine
   tester: false, // mode testeur (lien ?testeur)
   testerGift: false,
 });

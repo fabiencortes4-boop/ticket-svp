@@ -11,7 +11,11 @@ G.STORY = {
     tokyo: "Tokyo à l'heure de pointe. Les rames sont pleines, le temps est compté. Gaston dit que tu n'y survivras pas. Prouve-lui le contraire.",
     moscou: "Moscou, ses stations-musées et ses cartes d'identité périmées. Vérifie bien les dates de validité.",
     nuit: 'Le train de nuit Paris-Venise. Les passagers dorment, pas les fraudeurs. Garde ta lampe à portée de main.',
-    express: "Le Grand Express Paris-Istanbul. Velours, dorures et 1re classe… et quelque part dans ce train, un mystère. C'est ta dernière mission, inspecteur.",
+    express: "Le Grand Express Paris-Istanbul. Velours, dorures et 1re classe… et quelque part dans ce train, un mystère. Résous-le, inspecteur.",
+    ny: "Ta réputation a traversé l'Atlantique : New York te réclame ! Une liasse de tickets a été volée à Times Square. Garde l'œil sur les numéros.",
+    berlin: "Direction Berlin. Ici, pas de portillons partout : les resquilleurs adorent ça. Les caméras de la station t'aideront.",
+    venise: "Venise et son vaporetto. Le Grand Canal est magnifique… et la météo annonce une tempête. Accroche-toi.",
+    mars: "Dernière frontière : la colonie de Mars. Gaston a tout misé sur ton échec. Le monorail t'attend, garde ton casque sur la tête.",
   },
   outro: {
     bus: 'Les Jumeaux sont derrière les barreaux. Même Gaston est impressionné. Tu montes à Paris !',
@@ -20,7 +24,11 @@ G.STORY = {
     tokyo: "Tu as survécu à l'heure de pointe infernale. Gaston t'a envoyé un message : « Pas mal. »",
     moscou: 'Les Poupées gigognes sont rangées. Toutes les cinq.',
     nuit: 'Le Somnambule est réveillé et verbalisé. Le train de nuit retrouve son calme.',
-    express: "Le crime du Grand Express est résolu. Tu es désormais une légende du rail. Gaston demande à rejoindre ta brigade !",
+    express: "Le crime du Grand Express est résolu. Un télégramme arrive de New York : on a besoin de toi de l'autre côté de l'océan !",
+    ny: 'Les tickets volés sont tous retrouvés. Le maire de New York te remet les clés du métro.',
+    berlin: 'Les sauteurs de portillons sont démasqués. Berlin te nomme contrôleur d\'honneur.',
+    venise: 'Tu as tenu bon dans la tempête. Les gondoliers chantent ton nom sur le Grand Canal.',
+    mars: "Le dôme est réparé et tout le monde respire. Tu es la première légende du rail interplanétaire. Gaston demande à rejoindre ta brigade !",
   },
 };
 
@@ -32,6 +40,10 @@ G.BOSS_MECH = {
   tokyo: { id: 'rush', title: 'Contre la montre', desc: "Pas de chrono par passager : tu as 75 secondes pour en contrôler au moins 18. Les erreurs coûtent toujours un bouclier." },
   moscou: { id: 'groups', title: 'Les sœurs voyagent ensemble', desc: 'Les passagers arrivent en groupes. Compte les têtes : le ticket doit couvrir tout le monde.' },
   nuit: { id: 'dark', title: 'Dans le noir', desc: "La rame est plongée dans le noir. Promène ton doigt sur les documents pour les éclairer à la lampe torche (le zoom ne marche pas dans le noir). Pour décider, utilise les boutons ou fais glisser le passager." },
+  ny: { id: 'blacklist', title: 'Liste noire', desc: "Trois numéros de tickets volés sont affichés en haut. Lis le numéro (N°) en bas de chaque ticket : s'il est sur la liste, verbalise, même si tout le reste est en règle." },
+  berlin: { id: 'memory', title: 'Caméras de surveillance', desc: "Mémorise les trois visages filmés par les caméras. S'ils montent, verbalise-les, même avec un ticket valable. Revoir les images pendant le service coûte 150 points." },
+  venise: { id: 'sway', title: 'Ça tangue !', desc: 'Le vaporetto bouge dans tous les sens et les documents avec lui. Tu as un peu plus de temps pour lire.' },
+  mars: { id: 'oxygen', title: 'Oxygène', desc: "Pas de chrono par passager : la jauge d'oxygène baisse sans arrêt. Bonne décision : +4 s. Erreur : −6 s. Termine la file avant qu'elle soit vide !" },
   express: { id: 'mystery', title: "L'enquête", desc: "Un coupable se cache parmi les passagers. Chaque bonne décision peut révéler un indice. À la fin, désigne le coupable parmi 4 suspects." },
 };
 

@@ -322,6 +322,26 @@ const SPECIAL_LOOKS = {
   clown: { hair: 'afro', hairColor: '#ff6fb5', hat: 'none', skin: '#fbfbfb', extras: ['clownnose'], outfit: 'stripes', outfitColor: '#e94f4f', mouth: 'grin', glasses: 'none', facial: 'none', acc: 'balloon' },
   viking: { hat: 'viking', facial: 'beard', hairColor: '#d9531e', hair: 'long', outfit: 'fur', glasses: 'none', acc: 'none' },
   bride: { hair: 'long', hairColor: '#5a3a1e', hat: 'none', outfit: 'wedding', back: ['veil'], extras: ['flowercrown'], acc: 'bouquet', glasses: 'none', facial: 'none' },
+  broker: { hair: 'slick', hairColor: '#2b1b12', hat: 'none', outfit: 'suit', outfitColor: '#1e2a4a', acc: 'phone', glasses: 'none', facial: 'none', mouth: 'grin' },
+  liberty: { skin: '#8fd1b5', hair: 'long', hairColor: '#5fa88a', hat: 'tiara', outfit: 'royalcape', outfitColor: '#5fa88a', acc: 'coffee', glasses: 'none', facial: 'none', mouth: 'flat', eyes: 'dot' },
+  hotdog: { hair: 'short', hairColor: '#2b1b12', hat: 'cap', hatColor: '#ffd23f', outfit: 'tee', outfitColor: '#e94f4f', acc: 'baguette', facial: 'mustache', glasses: 'none' },
+  breakdancer: { hair: 'short', hat: 'cap', hatColor: '#2ec4b6', outfit: 'hoodie', outfitColor: '#ff6b35', extras: ['headphones'], glasses: 'sun', facial: 'none', acc: 'none' },
+  taxi: { hair: 'short', hairColor: '#5a3a1e', hat: 'cap', hatColor: '#ffd23f', outfit: 'vest', outfitColor: '#2b2b38', facial: 'mustache', acc: 'newspaper', glasses: 'none' },
+  gaston: { hair: 'short', hairColor: '#2b1b12', hat: 'kepi', hatColor: '#a8323a', outfit: 'suit', outfitColor: '#a8323a', facial: 'curly', glasses: 'sun', acc: 'newspaper' },
+  techno: { hair: 'spiky', hairColor: '#ff6fb5', hat: 'none', glasses: 'sun', outfit: 'leather', extras: ['headphones'], facial: 'none', acc: 'none', eyes: 'sleepy' },
+  philosopher: { hair: 'wild', hairColor: '#d6d6d6', hat: 'none', glasses: 'round', facial: 'beard', outfit: 'sweater', outfitColor: '#7a5230', acc: 'newspaper' },
+  spy: { hat: 'fedora', hatColor: '#1b1b25', outfit: 'trench', glasses: 'sun', acc: 'newspaper', facial: 'mustache', hairColor: '#1b1b25' },
+  cyclist: { hair: 'ponytail', hairColor: '#d9531e', hat: 'cap', hatColor: '#3a86ff', outfit: 'tee', outfitColor: '#2ec4b6', glasses: 'sun', facial: 'none', acc: 'none' },
+  currywurst: { hair: 'short', hairColor: '#5a3a1e', hat: 'toque', outfit: 'chef', acc: 'pan', facial: 'mustache', glasses: 'none', build: 'round' },
+  gondolier: { hair: 'short', hairColor: '#2b1b12', hat: 'straw', outfit: 'stripes', outfitColor: '#1e2a4a', facial: 'curly', glasses: 'none', acc: 'none', mouth: 'sing' },
+  carnival: { hair: 'long', hairColor: '#1b1b25', hat: 'top', hatColor: '#5a2a9b', extras: ['mask'], outfit: 'cape', outfitColor: '#d62828', glasses: 'none', facial: 'none', acc: 'none' },
+  pigeon: { skin: '#9aa5b1', hair: 'none', hat: 'none', back: ['wings'], outfit: 'tee', outfitColor: '#7d8a99', mouth: 'o', eyes: 'big', glasses: 'none', facial: 'none', acc: 'none' },
+  painter: { hair: 'bob', hairColor: '#5a3a1e', hat: 'beret', hatColor: '#d62828', outfit: 'overalls', outfitColor: '#e9d7a8', acc: 'wand', glasses: 'none', facial: 'none' },
+  casanova: { hair: 'curly', hairColor: '#f2f2f2', hat: 'none', outfit: 'royalcape', outfitColor: '#3a86ff', acc: 'bouquet', glasses: 'none', facial: 'none', mouth: 'grin' },
+  martian: { skin: '#7fd36b', hair: 'none', hat: 'none', glasses: 'none', facial: 'none', outfit: 'foil', extras: ['alieneyes', 'antennae'], acc: 'none', head: 'oval' },
+  colonist: { hair: 'bob', hairColor: '#2b1b12', hat: 'none', outfit: 'space', extras: ['helmet'], glasses: 'none', facial: 'none', acc: 'none' },
+  astrocat: { skin: '#f2a93b', hair: 'none', hat: 'none', outfit: 'space', extras: ['helmet', 'elfears'], eyes: 'big', mouth: 'o', glasses: 'none', facial: 'none', acc: 'none' },
+  emperor: { hat: 'crown', facial: 'beard', hairColor: '#d6d6d6', hair: 'long', outfit: 'royalcape', outfitColor: '#5a2a9b', acc: 'wand', glasses: 'none' },
   diva: { hair: 'diva', hairColor: '#e8c25a', hat: 'viking', glasses: 'none', facial: 'none', outfit: 'dress', outfitColor: '#c0262d', mouth: 'sing', acc: 'pearls', extras: ['notes'], build: 'round' },
 };
 
@@ -332,13 +352,14 @@ G.makeSpecial = (sp, cfg, r, ctx) => {
   p.special = sp.id;
   const year = ctx.today.getFullYear();
   if (sp.id === 'ghost') p.look = { kind: 'ghost' };
-  else if (sp.id === 'robot') p.look = { kind: 'robot' };
+  else if (sp.id === 'robot' || sp.id === 'rover') p.look = { kind: 'robot' };
   else if (sp.id === 'dogs') p.look = { kind: 'dogs' };
   else if (sp.id === 'twin') p.look = G.conductorLook(G.save.uniform);
   else Object.assign(p.look, { extras: [], back: [] }, SPECIAL_LOOKS[sp.id] || {});
   p.photoLook = Object.assign({}, p.look);
   p.nervous = false;
-  p.line = sp.say;
+  // Personnages récurrents : une réplique propre à chaque ville
+  p.line = (G.RECURRING && G.RECURRING[sp.id] && G.RECURRING[sp.id][cfg.city.id]) || sp.say;
 
   if (sp.fraud === 'docs') {
     // L'influenceuse : papiers ordinaires, mais une erreur coûte double.
@@ -487,6 +508,60 @@ G.makeSpecial = (sp, cfg, r, ctx) => {
       t.variant = 'balloon';
       p.hint = 'ticket';
       break;
+    case 'broker':
+      t.kind = 'pass';
+      t.passName = 'M. BONUS';
+      p.hint = 'name';
+      break;
+    case 'spy':
+      t.kind = 'pass';
+      t.passName = 'AGENT X';
+      p.hint = 'name';
+      break;
+    case 'casanova':
+      t.kind = 'pass';
+      t.passName = 'Bella ROSSI';
+      p.hint = 'name';
+      break;
+    case 'hotdog':
+      t.stamp = 'fake';
+      p.hint = 'stamp';
+      break;
+    case 'techno':
+      t.dayOffset = -1;
+      p.hint = 'date';
+      break;
+    case 'cyclist':
+      t.kind = 'reduced';
+      t.reducedType = 'etudiant';
+      p.birthYear = year - 41;
+      p.hint = 'age';
+      break;
+    case 'colonist':
+      t.dateText = G.fmtDate(new Date(2150, ctx.today.getMonth(), ctx.today.getDate()));
+      p.hint = 'date';
+      break;
+    case 'martian':
+      t.variant = 'alien';
+      t.zoneMax = 99;
+      p.idName = 'GLOUBI DE PHOBOS';
+      break;
+    case 'rover':
+      p.ticket = null;
+      p.idName = 'ROVER-7';
+      p.hint = 'ticket';
+      break;
+    case 'astrocat':
+      p.idName = 'MINOU ORBITAL';
+      break;
+    case 'taxi':
+    case 'gaston':
+    case 'carnival':
+    case 'pigeon':
+    case 'emperor':
+      p.ticket = null;
+      p.hint = 'ticket';
+      break;
     default:
       break;
   }
@@ -555,6 +630,52 @@ G.buildQueue = (cfg, seed) => {
     extra.twin = twin;
   }
   if (cfg.bossMech === 'mystery') extra.mystery = G.buildMystery(queue, r);
+  if (cfg.bossMech === 'blacklist') {
+    // Liste noire : trois numéros volés, posés sur des tickets par ailleurs parfaits
+    const list = [];
+    while (list.length < 3) {
+      const s = String(r.int(100000, 999999));
+      if (!list.includes(s)) list.push(s);
+    }
+    queue.forEach((q) => { if (q.ticket && list.includes(q.ticket.serial)) q.ticket.serial = String(r.int(100000, 999999)); });
+    const free = r.shuffle(queue.map((_, i) => i).filter((i) => i > 0 && !queue[i].special));
+    free.slice(0, 4).forEach((idx, k) => {
+      const p = G.makePassenger(Object.assign({}, cfg, { fraudRate: 0, groupRate: 0 }), r, ctx);
+      if (!p.ticket) return;
+      p.ticket.serial = list[k % 3];
+      p.specialFixed = true;
+      p.fraud = true;
+      p.reason = `Ticket volé : le N° ${p.ticket.serial} est sur la liste noire.`;
+      p.hint = 'serial';
+      queue[idx] = p;
+    });
+    // Leurres : un seul chiffre de différence avec un numéro volé
+    free.slice(4, 6).forEach((idx, k) => {
+      const t = queue[idx].ticket;
+      if (!t) return;
+      const s = list[k % 3];
+      t.serial = s.slice(0, 5) + String((Number(s[5]) + 3) % 10);
+    });
+    extra.blacklist = list;
+  }
+  if (cfg.bossMech === 'memory') {
+    // Caméras : trois visages filmés en train de sauter le portillon
+    const faces = [0, 1, 2].map(() => Object.assign(G.randomLook(r), { acc: 'none' }));
+    const slots = r.shuffle(queue.map((_, i) => i).filter((i) => i > 1 && !queue[i].special)).slice(0, 3);
+    slots.forEach((idx, k) => {
+      const p = G.makePassenger(Object.assign({}, cfg, { fraudRate: 0, groupRate: 0 }), r, ctx);
+      p.look = Object.assign({}, faces[k]);
+      p.photoLook = Object.assign({}, faces[k]);
+      p.specialFixed = true;
+      p.fraud = true;
+      p.reason = "Il a sauté le portillon : les caméras l'ont filmé !";
+      p.hint = 'memory';
+      p.nervous = true;
+      p.line = "Moi ? Je viens juste d'arriver…";
+      queue[idx] = p;
+    });
+    extra.memory = faces;
+  }
   return { queue, ctx, extra };
 };
 

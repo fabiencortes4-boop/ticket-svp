@@ -10,6 +10,10 @@ G.STATIONS = {
   moscou: ['Place Rouge', 'Komsomolskaïa', 'Kievskaïa', 'Park Pobedy', 'Les Bouleaux (terminus)'],
   nuit: ['Paris-Gare de Lyon', 'Dijon', 'Lausanne', 'Milan', 'Venise (terminus)'],
   express: ['Paris-Est', 'Munich', 'Vienne', 'Budapest', 'Istanbul (terminus)'],
+  ny: ['Times Square', 'Grand Central', 'Queensboro Plaza', 'Jackson Heights', 'Flushing (terminus)'],
+  berlin: ['Alexanderplatz', 'Potsdamer Platz', 'Gleisdreieck', 'Wittenbergplatz', 'Ruhleben (terminus)'],
+  venise: ['Piazzale Roma', 'Rialto', 'San Marco', 'Giardini', 'Lido (terminus)'],
+  mars: ['Dôme 1', 'Olympus Mons', 'Valles Marineris', 'Cratère Gale', 'Base Phobos (terminus)'],
 };
 
 /* ---------- Interrogatoire ----------
@@ -250,6 +254,11 @@ G.ACHIEVEMENTS = [
   { id: 'ask25', icon: 'talk', name: 'Interrogateur', desc: 'Démasquer 25 fraudeurs après les avoir questionnés', gold: 5, test: () => (G.save.stats.questionCatches || 0) >= 25 },
   { id: 'wardrobe', icon: 'shop', name: 'Garde-robe', desc: 'Posséder 4 uniformes', gold: 4, test: () => G.save.owned.length >= 4 },
   { id: 'rich', icon: 'coin', name: 'Prime de fin d\'année', desc: 'Encaisser 5 000 amendes au total', gold: 6, test: () => (G.save.stats.coinsEarned || 0) >= 5000 },
+  { id: 'atlantic', icon: 'map', name: 'Outre-Atlantique', desc: 'Vaincre le boss de New York', gold: 5, test: () => (G.save.levels[79] || 0) > 0 },
+  { id: 'mars', icon: 'trophy', name: 'Légende interplanétaire', desc: 'Vaincre le boss de Mars', gold: 10, test: () => (G.save.levels[109] || 0) > 0 },
+  { id: 'collector', icon: 'album', name: 'Collectionneur', desc: "Compléter 3 collections de l'album", gold: 5, test: () => Object.keys(G.save.collections || {}).length >= 3 },
+  { id: 'stylist', icon: 'brush', name: 'Styliste', desc: 'Posséder 5 objets de la boutique Style', gold: 3, test: () => (G.save.cos && G.save.cos.owned.length) >= 5 },
+  { id: 'weekly', icon: 'trophy', name: 'Habitué du dimanche', desc: 'Réussir un défi de la semaine', gold: 2, test: () => !!(G.save.weekly && G.save.weekly.rewarded) },
 ];
 
 /* Débloque les succès atteints et renvoie ceux qui sont nouveaux */

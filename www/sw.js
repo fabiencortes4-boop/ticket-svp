@@ -3,7 +3,7 @@
    et la version en ligne la plus récente est téléchargée pour le lancement suivant. */
 'use strict';
 
-const CACHE = 'ticketsvp-v1';
+const CACHE = 'ticketsvp-v2';
 const FILES = [
   './', 'index.html', 'manifest.webmanifest', 'privacy.html',
   'icon-512.png', 'icon-192.png', 'apple-touch-icon.png',
@@ -12,7 +12,7 @@ const FILES = [
   'fonts/nunito-latin.woff2', 'fonts/nunito-latin-ext.woff2',
   'fonts/press-start-2p-latin.woff2', 'fonts/press-start-2p-latin-ext.woff2',
   'js/util.js', 'js/analytics.js', 'js/cloud.js', 'js/pwa.js', 'js/data.js', 'js/art.js', 'js/art-extra.js',
-  'js/gen.js', 'js/modes.js', 'js/features.js', 'js/docs.js', 'js/audio.js', 'js/ads.js',
+  'js/gen.js', 'js/modes.js', 'js/features.js', 'js/content.js', 'js/docs.js', 'js/audio.js', 'js/ads.js',
   'js/ui.js', 'js/game.js', 'js/main.js',
 ];
 

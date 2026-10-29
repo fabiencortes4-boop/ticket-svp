@@ -150,7 +150,7 @@ function landmarkSvg(id) {
     express: `<rect x="40" y="34" width="56" height="30" rx="6" fill="#2b2b38" ${o}/><rect x="14" y="40" width="30" height="24" rx="4" fill="#8c1c2c" ${o}/><rect x="74" y="18" width="12" height="18" fill="#2b2b38" ${o}/><path d="M74 14 C70 4 86 0 90 8 C100 2 110 10 104 16" fill="#fff" stroke="#1e2a4a" stroke-width="2.5"/><circle cx="54" cy="68" r="8" fill="#e0b35a" ${o}/><circle cx="80" cy="68" r="8" fill="#e0b35a" ${o}/><circle cx="26" cy="68" r="6" fill="#e0b35a" ${o}/><rect x="96" y="48" width="10" height="16" fill="#e0b35a" ${o}/>`,
     tokyo: `<path d="M0 74 L36 26 L52 40 L60 32 L96 74Z" fill="#e6eef8" ${o}/><path d="M28 36 L36 26 L44 34 L38 38 L32 34Z" fill="#fff" stroke="#1e2a4a" stroke-width="2"/><path d="M74 74 L74 50 M98 74 L98 50" stroke="#1e2a4a" stroke-width="4"/><path d="M64 46 Q86 38 108 46 L104 52 Q86 46 68 52Z" fill="#d6457a" ${o}/><path d="M68 58 L104 58" stroke="#d6457a" stroke-width="5"/>`,
   };
-  return `<svg viewBox="-4 -8 124 84" class="city-landmark" aria-hidden="true">${art[id] || ''}</svg>`;
+  return `<svg viewBox="-4 -8 124 84" class="city-landmark" aria-hidden="true">${art[id] || (G.EXTRA_LANDMARKS && G.EXTRA_LANDMARKS[id]) || ''}</svg>`;
 }
 
 /* ---------- Carte du monde ---------- */
@@ -199,6 +199,7 @@ UI.map = () => {
         </button>
       </div>
       ${eventCard()}
+      ${weeklyCard()}
       ${endlessCard()}
       <div class="mini-row">
         <button class="mini-card-btn" data-missions>${G.icon('check')}<span><b>Missions du jour</b><small>${missionsSummary()}</small></span>${G.missionsReady() ? '<i class="dot-new"></i>' : ''}</button>
@@ -221,6 +222,11 @@ UI.map = () => {
       G.Audio.sfx('click');
       const evn = G.currentEvent();
       if (evn) G.Game.start(G.eventConfig(evn));
+    }
+    if (ev.target.closest('[data-weekly]')) {
+      G.Audio.sfx('click');
+      if (!G.isLevelUnlocked(G.WEEKLY_UNLOCK)) return G.toast(`${G.icon('lock')} Le défi de la semaine s'ouvre après le service ${G.WEEKLY_UNLOCK} (Paris).`);
+      G.Game.start(G.weeklyConfig());
     }
     if (ev.target.closest('[data-missions]')) missionsModal();
     if (ev.target.closest('[data-code]')) codeModal();
@@ -282,8 +288,19 @@ function codeModal() {
   G.$('[data-ok]', m.el).addEventListener('click', () => m.close());
   G.$('[data-form]', m.el).addEventListener('submit', (e) => {
     e.preventDefault();
-    const c = G.parseChallengeCode(G.$('#challenge-code', m.el).value);
+    const raw = G.$('#challenge-code', m.el).value.trim().toUpperCase();
     const err = G.$('[data-err]', m.el);
+    const wk = /^S-([0-9A-Z]+)-([0-9A-Z]+)$/.exec(raw);
+    if (wk) {
+      const week = parseInt(wk[1], 36);
+      const score = parseInt(wk[2], 36);
+      err.hidden = false;
+      if (week !== G.weekKey()) return (err.textContent = 'Ce défi de la semaine est terminé. Demande à ton ami le code de cette semaine !');
+      if (!G.isLevelUnlocked(G.WEEKLY_UNLOCK)) return (err.textContent = `Le défi de la semaine s'ouvre après le service ${G.WEEKLY_UNLOCK} (Paris).`);
+      m.close();
+      return G.Game.start(Object.assign(G.weeklyConfig(), { challengeScore: score }));
+    }
+    const c = G.parseChallengeCode(raw);
     if (!c) {
       err.hidden = false;
       err.textContent = 'Ce code ne ressemble pas à un code défi. Il doit avoir la forme 1F-3K9ZQ2-17C.';
@@ -321,6 +338,18 @@ function copyText(txt, preview) {
   }
 }
 
+function weeklyCard() {
+  const on = G.isLevelUnlocked(G.WEEKLY_UNLOCK);
+  const wk = G.weekKey();
+  const w = G.save.weekly.week === wk ? G.save.weekly : null;
+  const th = G.weeklyTheme(wk);
+  return `<button class="endless-card weekly-card ${on ? '' : 'locked'}" data-weekly>
+    <span class="ec-icon">${G.icon('trophy')}</span>
+    <span class="ec-txt"><b>Défi de la semaine · ${th.name}</b><span>${!on ? `S'ouvre après le service ${G.WEEKLY_UNLOCK}` : w ? `Ton record : ${G.fmt(w.best)} pts${w.rewarded ? '' : " · +3 tickets d'or à gagner"}` : "Nouveau ! +3 tickets d'or à la 1re réussite"}</span></span>
+    <span class="ec-go">${G.icon(on ? 'play' : 'lock')}</span>
+  </button>`;
+}
+
 function endlessCard() {
   const on = G.isEndlessUnlocked();
   const e = G.save.endless;
@@ -348,7 +377,7 @@ async function openChest() {
     viaAd = true;
   }
   const r = G.rng(Number(today) * (viaAd ? 7 : 3));
-  const coins = r.int(30, 80);
+  const coins = r.int(15, 40);
   const gold = r.chance(0.45) ? r.int(1, 2) : 0;
   s.coins += coins;
   s.gold += gold;
@@ -449,6 +478,7 @@ function shareDaily(preview) {
 UI.album = (tab = 'pax') => {
   const s = G.save;
   if (tab === 'ach') return achievementsPage();
+  if (tab === 'col') return collectionsPage();
   const got = G.SPECIALS.filter((sp) => s.album[sp.id]).length;
   const root = G.el('div', 'screen album-screen');
   root.innerHTML = `${topBar({ title: 'Album des passagers' })}
@@ -489,7 +519,8 @@ UI.album = (tab = 'pax') => {
 function albumTabs(active) {
   const a = G.save.achievements || {};
   const done = G.ACHIEVEMENTS.filter((x) => a[x.id]).length;
-  return `<div class="tabs tabs2"><button class="tab ${active === 'pax' ? 'on' : ''}" data-atab="pax">Passagers</button><button class="tab ${active === 'ach' ? 'on' : ''}" data-atab="ach">Succès ${done}/${G.ACHIEVEMENTS.length}</button></div>`;
+  const ready = G.COLLECTIONS.filter((c) => { const x = G.collectionState(c); return x.done && !x.claimed; }).length;
+  return `<div class="tabs tabs2"><button class="tab ${active === 'pax' ? 'on' : ''}" data-atab="pax">Passagers</button><button class="tab ${active === 'col' ? 'on' : ''}" data-atab="col">Collections${ready ? ' <i class="dot-new"></i>' : ''}</button><button class="tab ${active === 'ach' ? 'on' : ''}" data-atab="ach">Succès ${done}/${G.ACHIEVEMENTS.length}</button></div>`;
 }
 
 function achievementsPage() {
@@ -531,12 +562,19 @@ function previewLook(sp) {
 }
 
 /* ---------- Boutique ---------- */
-UI.shop = (tab = 'tools') => {
+UI.shop = (tab = 'tools', sub = 'stamp') => {
   const s = G.save;
   const root = G.el('div', 'screen shop-screen');
-  const tabs = [['tools', 'Outils'], ['uniforms', 'Uniformes'], ['gold', "Tickets d'or"]];
+  const tabs = [['tools', 'Outils'], ['boosts', 'Bonus'], ['style', 'Style'], ['uniforms', 'Tenues'], ['gold', "Tickets d'or"]];
   let body = '';
-  if (tab === 'tools') {
+  if (tab === 'style') body = styleShop(sub);
+  else if (tab === 'boosts') {
+    body = `<p class="shop-intro">À usage unique : active-les au début d'un service, sur l'écran de briefing.</p>${G.CONSUMABLES.map((c) => `<div class="shop-item">
+        <div class="si-icon">${G.icon(c.icon)}</div>
+        <div class="si-txt"><b>${c.name}</b><span>${c.desc}</span><small>En stock : ${s.items[c.id] || 0}</small></div>
+        <button class="btn btn-buy" data-buy-item="${c.id}" ${s.coins < c.price ? 'disabled' : ''}>${G.icon('coin')}${G.fmt(c.price)}</button>
+      </div>`).join('')}`;
+  } else if (tab === 'tools') {
     body = G.TOOLS.map((t) => {
       const lvl = s.tools[t.id];
       const maxed = lvl >= t.max;
@@ -577,6 +615,45 @@ UI.shop = (tab = 'tools') => {
     if (t) {
       G.Audio.sfx('tap');
       return UI.shop(t.dataset.tab);
+    }
+    const sc = ev.target.closest('[data-cat]');
+    if (sc) {
+      G.Audio.sfx('tap');
+      return UI.shop('style', sc.dataset.cat);
+    }
+    const bi = ev.target.closest('[data-buy-item]');
+    if (bi && !bi.disabled) {
+      const c = G.CONSUMABLES.find((x) => x.id === bi.dataset.buyItem);
+      if (s.coins < c.price) return;
+      s.coins -= c.price;
+      s.items[c.id] = (s.items[c.id] || 0) + 1;
+      G.persist();
+      G.Audio.sfx('buy');
+      G.toast(`${G.icon('check')} ${c.name} : ${s.items[c.id]} en stock`, 'good');
+      return UI.shop('boosts');
+    }
+    const bc = ev.target.closest('[data-buy-cos]');
+    if (bc && !bc.disabled) {
+      const [cat, id] = bc.dataset.buyCos.split(':');
+      const it = G.cosItem(cat, id);
+      const cur = it.price.gold ? 'gold' : 'coins';
+      const cost = it.price.gold || it.price.coins;
+      if (s[cur] < cost) return;
+      s[cur] -= cost;
+      s.cos.owned.push(G.cosKey(cat, id));
+      s.cos[cat] = id;
+      G.persist();
+      G.Audio.sfx('buy');
+      G.toast(`${G.icon('check')} ${it.name} : acheté et équipé !`, 'good');
+      return UI.shop('style', cat);
+    }
+    const eqc = ev.target.closest('[data-equip-cos]');
+    if (eqc) {
+      const [cat, id] = eqc.dataset.equipCos.split(':');
+      s.cos[cat] = id;
+      G.persist();
+      G.Audio.sfx('click');
+      return UI.shop('style', cat);
     }
     const bt = ev.target.closest('[data-buy-tool]');
     if (bt && !bt.disabled) {
@@ -825,14 +902,14 @@ function howTo() {
 UI.results = (r) => {
   const { cfg } = r;
   const nextG = cfg.g + 1;
-  const canNext = !cfg.daily && !cfg.event && cfg.challengeScore == null && r.success && nextG < G.TOTAL_LEVELS;
+  const canNext = !cfg.daily && !cfg.event && !cfg.weekly && cfg.challengeScore == null && r.success && nextG < G.TOTAL_LEVELS;
   const title = cfg.daily ? (r.success ? 'Défi terminé !' : 'Défi raté') : r.success ? (r.stars === 3 ? 'Service parfait !' : 'Service terminé !') : 'Service raté';
   const m = G.modal(`
     <div class="results ${r.success ? 'win' : 'lose'}">
       <div class="res-ribbon">${cfg.label}</div>
       <h2>${title}</h2>
       <div class="res-stars">${[1, 2, 3].map((k) => `<i class="${r.stars >= k ? 'on' : ''}" style="--d:${k * 0.25}s">${G.icon('star')}</i>`).join('')}</div>
-      <div class="res-score"><span>Score</span><b data-rscore>0</b>${!cfg.daily && G.save.best[cfg.g] === r.score && r.score > 0 ? '<em>Record !</em>' : ''}</div>
+      <div class="res-score"><span>Score</span><b data-rscore>0</b>${cfg.weekly ? (r.weekly && r.weekly.record && r.score > 0 ? '<em>Record de la semaine !</em>' : '') : !cfg.daily && G.save.best[cfg.g] === r.score && r.score > 0 ? '<em>Record !</em>' : ''}</div>
       <div class="res-grid">
         <div><b>${r.caught}</b><span>fraudeurs attrapés</span></div>
         <div><b>${r.acc} %</b><span>précision</span></div>
@@ -848,6 +925,7 @@ UI.results = (r) => {
       ${r.firstClear && cfg.boss ? `<div class="res-rank">${G.icon('gold')} Boss vaincu : +5 tickets d'or</div>` : ''}
       ${r.rushInfo ? `<div class="res-rank">${G.icon('clock')} ${r.rushInfo.done}/${r.rushInfo.target} passagers bien contrôlés${r.rushInfo.done >= r.rushInfo.target ? '' : ' : objectif manqué'}</div>` : ''}
       ${r.mystery && r.mystery.solved !== null && r.mystery.solved !== undefined ? `<div class="res-rank">${G.icon('camera')} ${r.mystery.solved ? 'Coupable démasqué : +500 points' : 'Le coupable a filé…'}</div>` : ''}
+      ${r.weekly ? `<div class="res-ach"><b>${G.icon('trophy')} Défi de la semaine</b><span>Ton meilleur score : ${G.fmt(r.weekly.best)} pts${r.weekly.reward ? ` · +${r.weekly.reward} tickets d'or` : ''}</span></div><button class="btn btn-ghost btn-challenge" data-wshare>${G.icon('share')} Défier mes amis cette semaine</button><p class="share-preview" data-wprev hidden></p>` : ''}
       ${r.eventReward ? `<div class="res-rank">${G.icon('gold')} Événement réussi : +${r.eventReward} tickets d'or</div>` : ''}
       ${r.challenge ? `<div class="res-ach"><b>${G.icon('trophy')} ${r.challenge.beat ? 'Défi réussi : tu bats ton ami !' : 'Défi raté'}</b><span>Score à battre : ${G.fmt(r.challenge.target)}</span></div>` : ''}
       ${r.story ? `<div class="letter"><div class="letter-head">${G.icon('talk')} Lettre du chef</div><p>${r.story}</p></div>` : ''}
@@ -882,12 +960,17 @@ UI.results = (r) => {
   const nx = G.$('[data-next]', m.el);
   if (nx) nx.addEventListener('click', () => leave(() => G.Game.start(G.levelConfig(nextG))));
   const rt = G.$('[data-retry]', m.el);
-  const again = () => (cfg.event ? G.eventConfig(cfg.event) : cfg.challengeScore != null ? Object.assign(G.levelConfig(cfg.g), { seed: cfg.seed, challengeScore: cfg.challengeScore }) : G.levelConfig(cfg.g));
+  const again = () => (cfg.weekly ? Object.assign(G.weeklyConfig(), cfg.challengeScore != null ? { challengeScore: cfg.challengeScore } : {}) : cfg.event ? G.eventConfig(cfg.event) : cfg.challengeScore != null ? Object.assign(G.levelConfig(cfg.g), { seed: cfg.seed, challengeScore: cfg.challengeScore }) : G.levelConfig(cfg.g));
   if (rt) rt.addEventListener('click', () => leave(() => G.Game.start(again())));
   const ch = G.$('[data-challenge]', m.el);
   if (ch) ch.addEventListener('click', () => {
     const txt = `🎫 Ticket SVP ! Bats mon score de ${G.fmt(r.score)} points sur « ${cfg.label} ».\nCode défi : ${r.challengeCode}`;
     copyText(txt, G.$('[data-cprev]', m.el));
+  });
+  const ws = G.$('[data-wshare]', m.el);
+  if (ws) ws.addEventListener('click', () => {
+    const txt = `🎫 Ticket SVP ! Défi de la semaine : ${G.fmt(r.score)} points. Tu fais mieux ?\nCode : ${r.weekly.code} (à entrer dans « Défi d'un ami »)`;
+    copyText(txt, G.$('[data-wprev]', m.el));
   });
   const dl = G.$('[data-daily]', m.el);
   if (dl) dl.addEventListener('click', () => {
@@ -960,4 +1043,81 @@ function confetti(host) {
   }
   host.appendChild(layer);
   setTimeout(() => layer.remove(), 3500);
+}
+
+/* ---------- Boutique : onglet Style (tampons, encres, compagnons, décors) ---------- */
+function cosPreview(cat, id) {
+  if (cat === 'stamp') return `<div class="vs-preview"><div class="verdict-stamp vs-${id} ink-${G.cosEquipped('ink')} fine">AMENDE</div></div>`;
+  if (cat === 'ink') return `<div class="vs-preview ink-pair"><div class="verdict-stamp ink-${id} fine">AMENDE</div><div class="verdict-stamp ink-${id} ok">VALIDÉ</div></div>`;
+  if (cat === 'pet') return `<div class="pet-preview">${id === 'none' ? G.icon('cross') : G.petSvg(id)}</div>`;
+  return `<div class="deco-preview">${id === 'none' ? '' : G.wagonDeco(id).replace('xMidYMax slice', 'xMidYMid meet')}</div>`;
+}
+
+function styleShop(cat) {
+  const s = G.save;
+  const ev = G.currentEvent();
+  const items = G.COSMETICS[cat].filter((it) => !it.event || (ev && ev.id === it.event) || G.cosOwned(cat, it.id));
+  const sub = `<div class="cos-cats">${G.COS_CATS.map(([id, label, icon]) => `<button class="cos-cat ${cat === id ? 'on' : ''}" data-cat="${id}">${G.icon(icon)}<span>${label}</span></button>`).join('')}</div>`;
+  const cards = items.map((it) => {
+    const owned = G.cosOwned(cat, it.id);
+    const eq = G.cosEquipped(cat) === it.id;
+    let action;
+    if (eq) action = `<span class="uni-state">${G.icon('check')} Équipé</span>`;
+    else if (owned) action = `<button class="btn btn-small" data-equip-cos="${cat}:${it.id}">Équiper</button>`;
+    else if (it.collection) {
+      const col = G.COLLECTIONS.find((c) => c.id === it.collection);
+      action = `<span class="cos-lock">${G.icon('album')} Collection « ${col.name} »</span>`;
+    } else {
+      const gold = !!it.price.gold;
+      const cost = it.price.gold || it.price.coins;
+      action = `<button class="btn btn-small btn-buy" data-buy-cos="${cat}:${it.id}" ${(gold ? s.gold : s.coins) < cost ? 'disabled' : ''}>${G.icon(gold ? 'gold' : 'coin')}${G.fmt(cost)}</button>`;
+    }
+    const badge = it.event ? `<span class="cos-badge ev">${G.icon('star')} ${ev && ev.id === it.event ? `Événement · ${G.eventEndText(ev)}` : 'Édition limitée'}</span>` : it.collection ? `<span class="cos-badge col">Exclusif</span>` : '';
+    return `<div class="cos ${eq ? 'eq' : ''}">${cosPreview(cat, it.id)}<b>${it.name}</b><small>${it.desc}</small>${badge}${action}</div>`;
+  }).join('');
+  return `${sub}<div class="cos-grid">${cards}</div><p class="shop-note">Les objets « Exclusif » se gagnent en complétant les collections de l'album. Les éditions limitées ne sont en vente que pendant leur événement.</p>`;
+}
+
+/* ---------- Album : collections à compléter ---------- */
+function collectionsPage() {
+  const s = G.save;
+  const root = G.el('div', 'screen album-screen');
+  root.innerHTML = `${topBar({ title: 'Collections' })}
+    <div class="page">
+      ${albumTabs('col')}
+      <p class="shop-intro">Rencontre tous les passagers d'une page pour gagner un objet exclusif, introuvable en boutique.</p>
+      <div class="col-list">${G.COLLECTIONS.map((c) => {
+        const x = G.collectionState(c);
+        const [cat, id] = c.reward;
+        const it = G.cosItem(cat, id);
+        const faces = c.specials.map((sid) => {
+          const sp = G.SPECIALS.find((q) => q.id === sid);
+          const have = s.album[sid];
+          return `<span class="col-face ${have ? 'have' : ''}" title="${have ? sp.name : '???'}">${have ? G.drawPerson(previewLook(sp), { photo: true }) : '<b>?</b>'}</span>`;
+        }).join('');
+        return `<div class="col-card ${x.claimed ? 'claimed' : x.done ? 'ready' : ''}">
+          <div class="col-head"><b>${c.name}</b><span>${x.got}/${x.total}</span></div>
+          <div class="col-faces">${faces}</div>
+          <div class="col-reward">${cosPreview(cat, id)}<span><small>Récompense</small><b>${it.name}</b></span>
+          ${x.claimed ? `<em>${G.icon('check')} Obtenu</em>` : x.done ? `<button class="btn btn-small btn-primary" data-claimcol="${c.id}">Récupérer</button>` : `<em>${G.icon('lock')}</em>`}</div>
+        </div>`;
+      }).join('')}</div>
+    </div>
+    ${bottomNav('album')}`;
+  G.showScreen(root);
+  bindNav(root);
+  root.addEventListener('click', (ev) => {
+    const tb = ev.target.closest('[data-atab]');
+    if (tb) {
+      G.Audio.sfx('tap');
+      return UI.album(tb.dataset.atab);
+    }
+    const cl = ev.target.closest('[data-claimcol]');
+    if (cl && G.claimCollection(cl.dataset.claimcol)) {
+      const c = G.COLLECTIONS.find((x) => x.id === cl.dataset.claimcol);
+      G.Audio.sfx('open');
+      G.toast(`${G.icon('star')} ${G.cosItem(c.reward[0], c.reward[1]).name} débloqué ! Équipe-le dans la boutique, onglet Style.`, 'gold');
+      collectionsPage();
+    }
+  });
 }

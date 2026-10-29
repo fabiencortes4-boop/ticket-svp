@@ -88,6 +88,58 @@ G.CITIES = [
     music: 'orient',
     boss: { name: 'Le Crime du Grand Express', desc: 'Tout le wagon est suspect : fausses classes, faux noms, fausses photos. Mène l\'enquête !', bias: { class: 3, name: 2, photo: 2 } },
   },
+  {
+    id: 'ny',
+    name: 'New York',
+    line: 'Ligne 7 · Times Square express',
+    company: 'NYC SUBWAY',
+    lineColor: '#b933ad',
+    window: 'nyc',
+    theme: { sky: '#ffb36b', wall: '#eef2f4', wall2: '#c9d3d9', seat: '#f2a93b', seat2: '#c98420', floor: '#6d6f73', pole: '#c9ced6', window: '#2a2f45' },
+    ticket: { bg: '#fff9db', ink: '#1f3b70', band: '#f2c14e' },
+    timeMod: 0.86,
+    music: 'nyc',
+    boss: { name: 'Le Gang des tickets volés', desc: 'Une liasse de tickets a été volée. Ils ont l\'air parfaitement valables… sauf leur numéro.', bias: { name: 2, date: 1 } },
+  },
+  {
+    id: 'berlin',
+    name: 'Berlin',
+    line: 'U-Bahn U2 · Alexanderplatz',
+    company: 'BERLINER U-BAHN',
+    lineColor: '#f0d722',
+    window: 'berlin',
+    theme: { sky: '#3a3f4a', wall: '#f2efe2', wall2: '#ded6b8', seat: '#2f5f9e', seat2: '#234a7c', floor: '#5c5a55', pole: '#f0d722', window: '#20232b' },
+    ticket: { bg: '#fffbe8', ink: '#2a2a2a', band: '#f0d722' },
+    timeMod: 0.85,
+    music: 'berlin',
+    boss: { name: 'Les Sauteurs de portillons', desc: 'Trois resquilleurs ont sauté le portillon sous l\'œil des caméras. Ils se sont procuré de vrais tickets depuis… mais pas un nouveau visage.', bias: { photo: 2, expiry: 2 } },
+  },
+  {
+    id: 'venise',
+    name: 'Venise',
+    line: 'Vaporetto ligne 1 · Grand Canal',
+    company: 'VAPORETTO',
+    lineColor: '#1f9bb5',
+    window: 'venise',
+    theme: { sky: '#8fd8ff', wall: '#f6ead8', wall2: '#e3c9a6', seat: '#a8432f', seat2: '#7f3122', floor: '#8b6b4a', pole: '#e0b35a', window: '#bfe9ff' },
+    ticket: { bg: '#f3fbff', ink: '#13506b', band: '#1f9bb5' },
+    timeMod: 0.84,
+    music: 'venise',
+    boss: { name: 'La Tempête sur la lagune', desc: 'Le vaporetto tangue dans tous les sens. Les documents bougent, les embruns brouillent la vue. Tiens bon la barre !', bias: { stamp: 2, date: 2, zone: 1 } },
+  },
+  {
+    id: 'mars',
+    name: 'Colonie de Mars',
+    line: 'Monorail Olympus · Dôme 3',
+    company: 'MARS TRANSIT',
+    lineColor: '#e4572e',
+    window: 'mars',
+    theme: { sky: '#1a0f1f', wall: '#eceaf2', wall2: '#cfcbe0', seat: '#5b4bcf', seat2: '#4436a8', floor: '#5a5068', pole: '#9ad7ff', window: '#2a1620' },
+    ticket: { bg: '#f1f4ff', ink: '#3a2a8c', band: '#e4572e' },
+    timeMod: 0.84,
+    music: 'mars',
+    boss: { name: "La Panne d'oxygène", desc: "Le dôme fuit ! L'oxygène baisse sans arrêt. Chaque bonne décision en rajoute, chaque erreur en fait perdre. Va jusqu'au bout de la file avant d'étouffer.", bias: { class: 2, name: 2, group: 1 } },
+  },
 ];
 G.LEVELS_PER_CITY = 10;
 G.TOTAL_LEVELS = G.CITIES.length * G.LEVELS_PER_CITY;
@@ -157,6 +209,10 @@ G.CITY_LINES = {
   moscou: ['Zdravstvouïte !', "Il fait -20 dehors, ici c'est le printemps.", 'Spassiba, camarade contrôleur.'],
   nuit: ['*bâille* Bonsoir…', 'Je cherche ma couchette.', 'Chut, les autres dorment.'],
   express: ['Bonsoir, très cher.', 'Le dîner est servi à quelle heure ?', 'Charmant, ce wagon.'],
+  ny: ['Hey, how you doin\' ?', 'Je suis en retard pour Broadway !', 'Un bagel, chef ?'],
+  berlin: ['Guten Tag !', 'Le club ouvre à 6 h du matin.', 'Ach so…'],
+  venise: ['Buongiorno !', "Attention, ça tangue !", 'Je vais à la place Saint-Marc.'],
+  mars: ['Bonjour, Terrien !', "Il fait -60 dehors, gardez votre casque.", "La gravité ici, c'est le pied !"],
 };
 
 /* Passagers spéciaux : ils alimentent l'album et les moments à partager. */
@@ -201,8 +257,40 @@ G.SPECIALS = [
   { id: 'clown', name: 'Le Clown', city: 6, fraud: true, bio: 'Son ticket fait pouet.', quote: '« Pouet pouet ! »', reason: 'Son « ticket » est un chien en ballon.', say: 'Pouet ! Mon ticket !', caught: 'Pouet… snif.', escaped: 'Pouet pouet !' },
   { id: 'viking', name: 'Le Viking', city: 6, fraud: true, bio: 'A pillé le composteur. Et le ticket de son voisin.', quote: '« Par Odin ! »', reason: "Pas de ticket. Il l'a « échangé » contre un cri de guerre.", say: 'Par Odin ! Je monte !', caught: 'Valhalla !', escaped: 'Skål !' },
   { id: 'bride', name: 'La Mariée', city: 6, fraud: false, bio: 'En retard à son propre mariage.', quote: '« Vite, vite, je me marie ! »', reason: 'Ticket en règle. Félicitations !', say: 'Vite, je me marie dans 10 minutes !', caught: 'Le plus beau jour de ma vie…', escaped: 'Merci ! Venez au bal !' },
+  { id: 'broker', name: 'Le Trader', city: 7, fraud: true, bio: "Achète, vend, crie au téléphone. Son abonnement appartient à son patron.", quote: '« Achetez ! Vendez ! Compostez ! »', reason: "Abonnement au nom de son patron, M. BONUS.", say: 'Je rachète votre métro, combien ?', caught: 'Krach boursier !', escaped: 'Jackpot !' },
+  { id: 'liberty', name: 'La Statue de la Liberté', city: 7, fraud: false, bio: 'Une artiste de rue peinte en vert. Elle ne bouge pas, sauf pour composter.', quote: '« … » (immobile)', reason: 'Ticket en règle. Immobile, mais honnête.', say: '(ne bouge pas d\'un millimètre)', caught: '(une larme verte coule)', escaped: '(cligne de l\'œil)' },
+  { id: 'hotdog', name: 'Le Vendeur de hot-dogs', city: 7, fraud: true, bio: 'Vend des hot-dogs dans la rame. Et des tickets tachés de moutarde.', quote: '« Moutarde ou ketchup ? »', reason: 'Le « tampon » est une trace de moutarde.', say: 'Hot-dog ! Hot-dog chaud !', caught: 'Ma moutarde !', escaped: 'Un hot-dog offert !' },
+  { id: 'breakdancer', name: 'Le Breakdancer', city: 7, fraud: false, bio: 'Tourne sur la tête entre deux stations. Ticket bien rangé dans sa casquette.', quote: '« Showtime ! »', reason: 'Ticket en règle. Et quel style !', say: "It's showtime, folks !", caught: 'Mon moonwalk…', escaped: 'Yeah !' },
+  { id: 'taxi', name: 'Le Chauffeur de taxi', city: 7, fraud: true, bio: "D'habitude, ce sont les autres qui paient.", quote: '« Le compteur tourne ! »', reason: "Pas de ticket. Il pensait que c'était le métro qui le payait.", say: 'Je prends jamais le métro, moi.', caught: 'Embouteillage !', escaped: 'Gardez la monnaie !' },
+  { id: 'gaston', name: 'Gaston, le rival', city: 7, fraud: true, bio: "Ton rival de la brigade concurrente. Il te suit de ville en ville, déguisé en passager.", quote: '« Tu ne me reconnais pas, hein ? »', reason: "C'est Gaston, sans ticket, pour tester ta vigilance. Raté pour lui !", say: 'Bonjour… simple passager…', caught: 'Grrr ! La prochaine fois !', escaped: 'Ha ! Je le dirai au chef !' },
+  { id: 'techno', name: 'Le Fêtard techno', city: 8, fraud: true, bio: 'Sort de boîte à 9 h du matin. Son ticket date d\'hier soir.', quote: '« Boum… boum… boum… »', reason: "Ticket d'hier soir. La fête a duré un peu trop longtemps.", say: 'Quelle heure il est ?', caught: 'Le son s\'arrête…', escaped: 'After party !' },
+  { id: 'philosopher', name: 'Le Philosophe', city: 8, fraud: false, bio: 'Se demande si les tickets existent vraiment. Il en a quand même acheté un.', quote: '« Je composte, donc je suis. »', reason: 'Ticket en règle. Existentiellement valable.', say: 'Le ticket est-il une illusion ?', caught: 'Absurde !', escaped: 'Tout est relatif.' },
+  { id: 'spy', name: "L'Espion", city: 8, fraud: true, bio: 'Lunettes noires, journal troué, faux nom.', quote: '« Le pigeon vole à minuit. »', reason: "Abonnement au nom d'« Agent X » : ce n'est pas le nom de sa carte.", say: 'Je ne suis pas là.', caught: 'Ma couverture !', escaped: 'Mission accomplie.' },
+  { id: 'cyclist', name: 'La Cycliste', city: 8, fraud: true, bio: 'Pédale partout, même dans le métro. Tarif étudiant à 41 ans.', quote: '« Dring dring ! »', reason: 'Tarif étudiant, mais elle a 41 ans.', say: 'Je suis encore étudiante… dans l\'âme.', caught: 'Crevaison !', escaped: 'Dring !' },
+  { id: 'currywurst', name: 'Le Roi de la currywurst', city: 8, fraud: false, bio: 'Tient le meilleur stand de la ville. Toujours en règle, toujours sauce curry.', quote: '« Mit Pommes ? »', reason: 'Ticket en règle. Ça sent bon le curry.', say: 'Une saucisse, chef ?', caught: 'Ma saucisse !', escaped: 'Danke !' },
+  { id: 'gondolier', name: 'Le Gondolier', city: 9, fraud: false, bio: 'Chante O sole mio à chaque arrêt. Abonnement annuel.', quote: '« O sole mioooo ! »', reason: 'Ticket en règle, et quelle voix.', say: '♪ O sole mio ♪', caught: '♪ Mamma mia ♪', escaped: 'Grazie mille !' },
+  { id: 'carnival', name: 'Le Masque du carnaval', city: 9, fraud: true, bio: 'Personne ne connaît son visage. Ni son ticket.', quote: '« Au carnaval, tout est permis ! »', reason: 'Pas de ticket. Même au carnaval, on paie.', say: 'Devinez qui je suis !', caught: 'Démasqué !', escaped: 'Arrivederci !' },
+  { id: 'pigeon', name: 'Le Pigeon de Saint-Marc', city: 9, fraud: true, bio: "Un pigeon. Enfin, quelqu'un en costume de pigeon. On n'est pas sûrs.", quote: '« Rrrou rrrou. »', reason: 'Son « ticket » est une miette de pain.', say: 'Rrrou ?', caught: 'RRROU !', escaped: 'Rrrou rrrou !' },
+  { id: 'painter', name: 'La Peintre', city: 9, fraud: false, bio: 'Peint le Grand Canal à chaque traversée. Ses tickets sont des œuvres d\'art.', quote: '« Ne bougez plus, je vous peins ! »', reason: 'Ticket en règle. Un peu de peinture dessus, rien de grave.', say: 'Quelle belle lumière !', caught: 'Mon chef-d\'œuvre…', escaped: 'Bellissimo !' },
+  { id: 'casanova', name: 'Casanova', city: 9, fraud: true, bio: 'Séducteur professionnel. Voyage avec l\'abonnement de sa douzième fiancée.', quote: '« Enchanté, mon cher. »', reason: 'Abonnement au nom de « Bella ROSSI », sa fiancée du moment.', say: 'Quel charmant contrôleur…', caught: 'Mon cœur est brisé !', escaped: 'Ciao, bello !' },
+  { id: 'martian', name: 'Le Martien', city: 10, fraud: false, bio: 'Né sur Mars, abonné à vie au monorail.', quote: '« Gloubi glouba, bonjour. »', reason: 'Pass toutes zones martiennes : valable partout.', say: 'Gloubi ! Mon pass !', caught: 'Incident diplomatique !', escaped: 'Glouba !' },
+  { id: 'colonist', name: 'La Colon de Mars', city: 10, fraud: true, bio: 'Arrivée par la dernière fusée. Son billet est daté du jour du départ… en 2150.', quote: '« Le voyage a duré six mois ! »', reason: "Billet daté de 2150 : il n'est pas encore valable.", say: 'Quel voyage !', caught: 'Retour sur Terre !', escaped: 'Vive Mars !' },
+  { id: 'rover', name: 'Le Rover', city: 10, fraud: true, bio: 'Robot d\'exploration en balade. Il pensait que les robots roulaient gratis.', quote: '« BIP. EXPLORATION. BIP. »', reason: 'Pas de ticket. Les robots paient aussi sur Mars.', say: 'BIP. ÉCHANTILLON ?', caught: 'BATTERIE FAIBLE…', escaped: 'BIP BIP !' },
+  { id: 'astrocat', name: 'Le Chat astronaute', city: 10, fraud: false, bio: 'Mascotte de la colonie. Il a son propre abonnement, avec sa photo.', quote: '« Miaou. »', reason: "Ticket en règle. C'est bien lui sur la photo.", say: 'Miaou ?', caught: 'Fffffft !', escaped: 'Ronron…' },
+  { id: 'emperor', name: "L'Empereur galactique", city: 10, fraud: true, bio: "Règne sur trois lunes et un astéroïde. Refuse de payer.", quote: '« À genoux, contrôleur ! »', reason: "Pas de ticket. Même les empereurs paient.", say: "L'Empereur ne paie pas !", caught: 'Je déclare la guerre !', escaped: 'Hahaha !' },
   { id: 'twin', name: 'Ton Sosie', city: 3, fraud: false, bio: "Même casquette, même moustache. Troublant.", quote: '« On se connaît, non ? »', reason: "Ticket en règle. C'est juste ton sosie.", say: 'Tiens… c\'est moi ?', caught: 'Je me verbalise moi-même ?!', escaped: 'Merci, moi !' },
 ];
+
+/* Économie : pièces gagnées (les pièces doivent rester désirables : boutique, consommables, outils) */
+G.ECO = {
+  fine: 4, // par fraudeur verbalisé
+  star: 6, // par étoile
+  boss: 50, // boss vaincu
+  daily: 25, // défi du jour réussi
+  station: 2, // Ligne infinie : par station, pendant la partie
+  endlessStation: 4, // Ligne infinie : par station, à la fin
+  mystery: 40, // coupable du Grand Express démasqué
+};
 
 G.TOOLS = [
   { id: 'watch', name: 'Montre de gousset', icon: 'clock', max: 5, costs: [80, 160, 300, 500, 800], desc: (l) => `+${(l * 0.7).toFixed(1).replace('.', ',')} s par passager` },
@@ -278,7 +366,9 @@ G.levelConfig = (g) => {
   const mech = boss && G.BOSS_MECH[city.id] ? G.BOSS_MECH[city.id].id : null;
   if (mech === 'rush') count = 40;
   if (mech === 'dark') time += 2;
-  if (mech === 'mustache' || mech === 'uvfake') time += 1;
+  if (mech === 'mustache' || mech === 'uvfake' || mech === 'memory') time += 1;
+  if (mech === 'sway') time += 1.5;
+  if (mech === 'oxygen') count = 22;
   const dayRule = allRules.includes('day') && !boss && (g === 24 || r.chance(0.6)) ? r.pick(G.DAY_RULES).id : null;
   return {
     g,
@@ -293,7 +383,9 @@ G.levelConfig = (g) => {
     newRule,
     dayRule,
     bossMech: mech,
-    timeAttack: mech === 'rush' ? 75 : 0,
+    timeAttack: mech === 'rush' ? 75 : mech === 'oxygen' ? 45 : 0,
+    o2: mech === 'oxygen',
+    sway: mech === 'sway',
     rushTarget: mech === 'rush' ? 18 : 0,
     perfectFakes: mech === 'uvfake',
     dark: mech === 'dark',

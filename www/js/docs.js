@@ -78,7 +78,7 @@ G.renderTicket = (p, cfg, ctx) => {
     <div class="tk-head" data-f="day"><span class="tk-co">${t.variant === 'alien' ? 'GALAXY TRANSIT' : city.company}</span><span class="tk-kind">${kindLabel}</span></div>
     <div class="tk-body">${rows.join('')}</div>
     ${stamp}
-    <div class="tk-foot"><span class="tk-serial">N° ${t.serial}</span></div>
+    <div class="tk-foot" data-f="serial"><span class="tk-serial">N° ${t.serial}</span></div>
     <div class="tk-stripe"></div>
   </div>`;
 };

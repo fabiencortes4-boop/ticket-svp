@@ -1,8 +1,8 @@
 # Installer Ticket SVP ! sur Android sans le Play Store (APK)
 
-À envoyer aux testeurs avec le fichier `ticket-svp-1.1.0.apk`.
+À envoyer aux testeurs avec le fichier `ticket-svp.apk` (https://fabiencortes4-boop.github.io/ticket-svp/ticket-svp.apk).
 
-1. **Télécharge** le fichier `ticket-svp-1.1.0.apk` sur le téléphone (lien reçu, e-mail, WhatsApp, Drive…).
+1. **Télécharge** le fichier `ticket-svp.apk` (https://fabiencortes4-boop.github.io/ticket-svp/ticket-svp.apk) sur le téléphone (lien reçu, e-mail, WhatsApp, Drive…).
 2. **Ouvre-le** depuis la notification de téléchargement ou l'appli *Fichiers › Téléchargements*.
 3. Android demande d'**autoriser l'installation depuis cette source** (Chrome, Fichiers, WhatsApp…) :
    touche *Paramètres*, active *Autoriser cette source*, puis reviens en arrière.

@@ -5,22 +5,23 @@ Jeu mobile en français : tu es contrôleur de métro et tu as quelques secondes
 - **100 % original et libre de droits** : personnages, décors, icônes et musique sont générés par le code (SVG + synthé 8 bits WebAudio). Aucun fichier image ni son externe.
 - **Sans dépendance** : HTML, CSS et JavaScript, prêt à être empaqueté en application Android avec Capacitor.
 
-## Contenu de la version 1.1
+## Contenu de la version 1.2
 
 | Élément | Détail |
 | --- | --- |
-| Villes | Bus de campagne (tutoriel), Paris, Londres, Tokyo, Moscou, Train de nuit, Le Grand Express : 70 services, dont 7 boss, chacune avec son décor, son paysage et sa musique |
-| Modes | Campagne, Contrôle du jour, Ligne infinie (stations sans fin, un bonus au choix parmi 3 toutes les 2 stations, record personnel), défi d'un ami par code, événements saisonniers (Halloween, Noël, 1er avril à l'envers) |
-| Boss | Une mécanique unique par ville : avis de recherche, fausses moustaches à arracher, faux tampons parfaits sous UV, heure de pointe chronométrée, groupes, wagon dans le noir à la lampe, enquête à indices (qui a volé le collier ?) |
+| Villes | Bus de campagne (tutoriel), Paris, Londres, Tokyo, Moscou, Train de nuit, Le Grand Express, New York, Berlin, Venise, Colonie de Mars : 110 services, dont 11 boss, chacune avec son décor, son paysage et sa musique |
+| Modes | Campagne, Contrôle du jour, Défi de la semaine (thème différent chaque lundi, code à partager entre amis), Ligne infinie (stations sans fin, un bonus au choix parmi 3 toutes les 2 stations, record personnel), défi d'un ami par code, un événement presque chaque mois (Nouvel an lunaire, Saint-Valentin, Carnaval, Poisson d'avril, Pâques, Fête des fleurs, Fête de la musique, Été, Rentrée, Halloween, Noël) |
+| Boss | Une mécanique unique par ville : avis de recherche, fausses moustaches à arracher, faux tampons parfaits sous UV, heure de pointe chronométrée, groupes, wagon dans le noir à la lampe, enquête à indices, liste noire de tickets volés, visages filmés par les caméras à mémoriser, vaporetto qui tangue, jauge d'oxygène |
 | Imprévus | Mini-événements en cours de service (course-poursuite, pickpocket, inspecteur qui observe), passagers spéciaux surprises, mode Fièvre tous les 10 combos, avertissement des petites infractions |
 | Histoire | Une lettre du chef de réseau avant et après chaque ville |
 | Missions | 3 missions du jour avec récompenses |
 | Interrogatoire | Une question par passager (coûte 1 s) : le fraudeur interrogé sur ce qui cloche ment ou hésite, et sa réponse contredit ses papiers |
 | Objectifs | 1re étoile : terminer le service ; 2e et 3e : deux objectifs tirés selon les passagers (combo, faux tampons à attraper, aucun innocent verbalisé…) |
 | Règles de contrôle | 10 règles au maximum, introduites une à une avec une fiche « Valable / Amende » lisible et un service plus facile à chaque nouveauté : date, zones, photo d'identité, tarif réduit (âge), compostage, abonnement nominatif, consigne du jour, validité de la carte d'identité, billets de groupe, 1re classe, et 7 consignes du jour (travaux, grève des réductions, panne des lecteurs, journées de la moustache, des lunettes, du chapeau et des aînés) |
-| Passagers | Générés à la volée (13 coiffures, 11 chapeaux, 10 tenues, 14 accessoires, lunettes, moustaches, yeux), plus 41 passagers spéciaux pour l'album |
+| Passagers | Générés à la volée (13 coiffures, 11 chapeaux, 10 tenues, 14 accessoires, lunettes, moustaches, yeux), plus 62 passagers spéciaux pour l'album, dont des personnages récurrents qui reviennent de ville en ville |
 | Outils | Montre (+temps), lampe UV (révèle les vrais tampons), sifflet (fige le chrono), badge (+1 erreur), question, caméra |
-| Rétention | Contrôle du jour identique pour tous avec partage du score en emojis, série de jours, coffre quotidien, album, passager du mois (points doublés), 26 succès récompensés, rangs, 12 uniformes |
+| Rétention | Contrôle du jour identique pour tous avec partage du score en emojis, série de jours, coffre quotidien, album et 7 collections à compléter (récompenses exclusives), passager du mois (points doublés), 31 succès récompensés, rangs, 12 uniformes |
+| Boutique | Outils à améliorer ; bonus à usage unique (café, loupe, double gain) ; onglet Style : tampons de décision, encres, compagnons animés, décors de wagon ; éditions limitées pendant les événements |
 | Accessibilité | Taille du texte (3 niveaux), couleurs pour daltoniens (bleu et orange), chrono plus lent (+50 %), animations réduites |
 | Mesures | Statistiques anonymes avec consentement au premier lancement : réussites et abandons par niveau, erreurs par type, pubs. Rapport de test copiable dans les Réglages |
 | Sauvegarde | Automatique sur l'appareil ; en ligne et privée pour chaque joueur quand le jeu est ouvert depuis un lien claude.ai par une personne connectée qui a le droit d'écrire ; code de sauvegarde à copier pour changer d'appareil |
@@ -86,6 +87,7 @@ www/
   js/gen.js          Génération des passagers et arbitrage (fraudeur ou non)
   js/modes.js        Interrogatoire, objectifs, Ligne infinie, succès
   js/features.js     Mécaniques de boss, histoire, événements saisonniers, missions, codes de défi, enquête
+  js/content.js      Boutique Style, bonus, collections, personnages récurrents, défi de la semaine, événements mensuels, décors des nouvelles villes
   js/docs.js         Rendu des tickets, abonnements, cartes d'identité
   js/audio.js        Moteur audio 8 bits : séquenceur, musiques, bruitages
   js/ads.js          Publicités : AdMob dans l'appli, démonstration dans le navigateur
@@ -126,7 +128,7 @@ node tools/store-assets.js     # nécessite Playwright
 ## Pistes pour la suite
 
 - Équilibrer la difficulté à partir des rapports des testeurs.
-- 60 passagers spéciaux au lancement (41 aujourd'hui) et 5 à 10 nouveaux par mois.
+- 5 à 10 nouveaux passagers spéciaux par mois.
 - Classements en ligne pour le défi du jour et la Ligne infinie (Google Play Jeux) : le record est aujourd'hui seulement local.
 - Achats réels avec Google Play Billing.
 - Davantage d'événements saisonniers (Pâques, été, nouvel an lunaire).

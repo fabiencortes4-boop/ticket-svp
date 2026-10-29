@@ -511,3 +511,86 @@ A.SONGS.orient = {
   ],
   drums: 'k..sk.s.k..sk.ss',
 };
+
+// New York : swing jazzy en fa majeur
+const NYC_CHORDS = ['F', 'Dm', 'Gm', 'C', 'F', 'Dm', 'Bb', 'C'];
+A.SONGS.nyc = {
+  bpm: 132,
+  loop: true,
+  tracks: [
+    { wave: 'pulse50', vol: 0.1, seq: L(
+      ['A5', 3], ['C6', 1], ['A5', 2], ['F5', 2], ['G5', 3], ['A5', 1], ['G5', 4],
+      ['F5', 3], ['A5', 1], ['D6', 4], ['C6', 4], ['A5', 4],
+      ['Bb5', 3], ['A5', 1], ['G5', 2], ['F5', 2], ['D5', 4], ['G5', 4],
+      ['E5', 3], ['G5', 1], ['C6', 4], ['Bb5', 4], ['G5', 4],
+      ['A5', 3], ['C6', 1], ['A5', 2], ['F5', 2], ['G5', 3], ['A5', 1], ['G5', 4],
+      ['F5', 3], ['A5', 1], ['D6', 4], ['F6', 4], ['D6', 4],
+      ['D6', 3], ['C6', 1], ['Bb5', 2], ['A5', 2], ['G5', 4], ['Bb5', 4],
+      ['C6', 4], ['E5', 4], ['F5', 8]) },
+    { wave: 'tri', vol: 0.34, seq: bassFrom(NYC_CHORDS, [0, 4, 7, 9, 12, 9, 7, 4]) },
+    { wave: 'pulse12', vol: 0.04, seq: arpFrom(NYC_CHORDS) },
+  ],
+  drums: 'k..hs.h.k.hhs.h.',
+};
+
+// Berlin : techno minimaliste en la mineur
+const BERLIN_CHORDS = ['Am', 'Am', 'F', 'G', 'Am', 'Am', 'F', 'E'];
+A.SONGS.berlin = {
+  bpm: 138,
+  loop: true,
+  tracks: [
+    { wave: 'pulse25', vol: 0.1, seq: L(
+      ['A5', 2], ['.', 2], ['A5', 2], ['C6', 2], ['.', 2], ['A5', 2], ['E6', 4],
+      ['A5', 2], ['.', 2], ['A5', 2], ['C6', 2], ['.', 2], ['B5', 2], ['G5', 4],
+      ['F5', 2], ['.', 2], ['F5', 2], ['A5', 2], ['.', 2], ['C6', 2], ['A5', 4],
+      ['G5', 2], ['.', 2], ['G5', 2], ['B5', 2], ['.', 2], ['D6', 2], ['B5', 4],
+      ['A5', 2], ['.', 2], ['A5', 2], ['C6', 2], ['.', 2], ['A5', 2], ['E6', 4],
+      ['A5', 2], ['.', 2], ['A5', 2], ['C6', 2], ['.', 2], ['E6', 2], ['A6', 4],
+      ['F6', 2], ['E6', 2], ['C6', 2], ['A5', 2], ['F5', 2], ['A5', 2], ['C6', 4],
+      ['E6', 2], ['D6', 2], ['B5', 2], ['G#5', 2], ['E5', 8]) },
+    { wave: 'tri', vol: 0.4, seq: bassFrom(BERLIN_CHORDS, [0, 0, 12, 0, 0, 12, 0, 12]) },
+  ],
+  drums: 'k.h.k.h.k.h.k.hs',
+};
+
+// Venise : barcarolle à 6/8 en ré mineur
+const VENISE_CHORDS = ['Dm', 'A', 'Dm', 'Gm', 'Dm', 'Bb', 'A', 'Dm'];
+A.SONGS.venise = {
+  bpm: 104,
+  loop: true,
+  tracks: [
+    { wave: 'pulse25', vol: 0.11, seq: L(
+      ['F5', 6], ['E5', 2], ['D5', 4], ['A5', 4],
+      ['G5', 6], ['F5', 2], ['E5', 8],
+      ['F5', 4], ['A5', 4], ['D6', 6], ['C6', 2],
+      ['Bb5', 6], ['A5', 2], ['G5', 8],
+      ['A5', 6], ['G5', 2], ['F5', 4], ['E5', 4],
+      ['D5', 6], ['F5', 2], ['Bb5', 8],
+      ['A5', 4], ['C#6', 4], ['E6', 4], ['C#6', 4],
+      ['D6', 12], ['.', 4]) },
+    { wave: 'tri', vol: 0.3, seq: VENISE_CHORDS.flatMap((c) => { const { root } = chord(c); return [[root - 12, 6], [root - 5, 2], [root - 12, 6], [root - 5, 2]]; }) },
+    { wave: 'pulse12', vol: 0.035, seq: arpFrom(VENISE_CHORDS) },
+  ],
+  drums: 'k.....h.k.....h.',
+};
+
+// Colonie de Mars : nappe spatiale en mi mineur
+const MARS_CHORDS = ['Em', 'C', 'G', 'D', 'Em', 'C', 'Am', 'B'];
+A.SONGS.mars = {
+  bpm: 112,
+  loop: true,
+  tracks: [
+    { wave: 'pulse12', vol: 0.1, seq: L(
+      ['B5', 8], ['G5', 4], ['E5', 4],
+      ['E6', 8], ['D6', 4], ['C6', 4],
+      ['B5', 8], ['D6', 8],
+      ['F#6', 12], ['.', 4],
+      ['G6', 8], ['F#6', 4], ['E6', 4],
+      ['E6', 8], ['G6', 8],
+      ['A6', 6], ['G6', 2], ['E6', 4], ['C6', 4],
+      ['D#6', 12], ['B5', 4]) },
+    { wave: 'tri', vol: 0.32, seq: MARS_CHORDS.flatMap((c) => { const { root } = chord(c); return [[root - 12, 4], [root - 5, 4], [root, 4], [root - 5, 4]]; }) },
+    { wave: 'pulse25', vol: 0.03, seq: arpFrom(MARS_CHORDS) },
+  ],
+  drums: 'k.......s.....h.',
+};

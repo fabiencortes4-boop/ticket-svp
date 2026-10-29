@@ -66,6 +66,11 @@ Game.start = (cfg) => {
     twin: extra.twin || null,
     mystery: extra.mystery || null,
     mysterySolved: false,
+    blacklist: extra.blacklist || null,
+    memory: extra.memory || null,
+    loupeLeft: 0,
+    doubleCoins: false,
+    boosts: [],
     globalTime: (cfg.timeAttack || 0) * G.timeScale(),
     feverUntil: 0,
     watch: null,
@@ -106,7 +111,7 @@ const later = (fn, ms) => {
 /* ---------- Écran et HUD ---------- */
 function renderScreen() {
   const { cfg } = st;
-  const root = G.el('div', `screen game-screen${cfg.dark ? ' dark' : ''}`);
+  const root = G.el('div', `screen game-screen${cfg.dark ? ' dark' : ''}${cfg.sway ? ' sway' : ''}${st.blacklist ? ' blacklist' : ''}${cfg.o2 ? ' o2' : ''}`);
   root.style.setProperty('--line', cfg.city.lineColor);
   const dayRule = cfg.dayRule ? G.DAY_RULES.find((d) => d.id === cfg.dayRule) : null;
   root.innerHTML = `
@@ -135,7 +140,9 @@ function renderScreen() {
     </header>
     <section class="scene" data-scene>
       ${G.drawScene(cfg.city)}
+      ${G.wagonDeco(G.cosEquipped('deco'))}
       ${cfg.event ? G.eventDeco(cfg.event.deco) : ''}
+      <div class="pet pet-${G.cosEquipped('pet')}" data-pet>${G.petSvg(G.cosEquipped('pet'))}<span class="pet-say" data-petsay hidden></span></div>
       <div class="queue-strip" data-queue></div>
       <div class="companions" data-comp></div>
       <div class="pax-wrap" data-pax></div>
@@ -154,6 +161,7 @@ function renderScreen() {
       <button class="tool" data-act="whistle">${G.icon('whistle')}<span>Sifflet</span><em data-whistle></em></button>
       <button class="tool tool-ask" data-act="ask">${G.icon('talk')}<span>Question</span><em data-ask></em></button>
       <button class="tool tool-ad" data-act="hint">${G.icon('camera')}<span>Caméra</span><em data-hint></em></button>
+      <button class="tool tool-loupe" data-act="loupe" hidden>${G.icon('loupe')}<span>Loupe</span><em data-loupe></em></button>
     </div>
     <div class="actions">
       <button class="act act-fine" data-act="fine">${G.icon('cross')}<span>Verbaliser</span></button>
@@ -187,6 +195,9 @@ function renderScreen() {
     comp: G.$('[data-comp]', root),
     warn: G.$('[data-act="warn"]', root),
     warnTxt: G.$('[data-warntxt]', root),
+    pet: G.$('[data-pet]', root),
+    petSay: G.$('[data-petsay]', root),
+    loupe: G.$('[data-act="loupe"]', root),
   };
   root.addEventListener('click', onClick);
   document.addEventListener('keydown', onKey);
@@ -198,6 +209,7 @@ function renderScreen() {
 function rulesStrip(cfg) {
   const dayRule = cfg.dayRule ? G.DAY_RULES.find((d) => d.id === cfg.dayRule) : null;
   let h = '';
+  if (st.blacklist) h += `<span class="rule-chip wanted blacklist-chip">${G.icon('skull')}<span>Volés : <b>${st.blacklist.join(' · ')}</b></span></span>`;
   if (st.objectives.length) h += `<button class="rule-chip obj" data-obj>${G.icon('star')}<span data-objtxt>Objectifs ${st.objectives.filter((o) => o.done).length}/${st.objectives.length}</span></button>`;
   if (cfg.endless) h += `<button class="rule-chip obj" data-obj>${G.icon('trophy')}<span>Record : ${G.fmt(G.save.endless.best)}</span></button>`;
   if (cfg.challengeScore != null) h += `<span class="rule-chip obj">${G.icon('trophy')}<span>À battre : ${G.fmt(cfg.challengeScore)}</span></span>`;
@@ -205,6 +217,8 @@ function rulesStrip(cfg) {
   if (st.wanted) h += `<button class="rule-chip wanted" data-wanted>${G.icon('skull')}<span>Avis de recherche</span></button>`;
   if (st.mystery) h += `<button class="rule-chip obj" data-mystery>${G.icon('camera')}<span data-mysterytxt>Indices ${st.mystery.revealed}/${st.mystery.clues.length}</span></button>`;
   if (cfg.bossMech === 'rush') h += `<span class="rule-chip day">${G.icon('clock')}<span data-rushtxt>0/${cfg.rushTarget} contrôlés</span></span>`;
+  if (st.memory) h += `<button class="rule-chip wanted" data-memory>${G.icon('camera')}<span>Caméras (−150 pts)</span></button>`;
+  if (cfg.o2) h += `<span class="rule-chip day">${G.icon('bolt')}<span>O₂ : +4 s si juste, −6 s si faux</span></span>`;
   if (dayRule) h += `<button class="rule-chip day" data-rule="day">${G.icon('megaphone')}<span>${dayRule.title}</span></button>`;
   h += cfg.rules.map((id) => { const ru = G.RULES.find((x) => x.id === id); return `<button class="rule-chip" data-rule="${id}">${G.icon(ru.icon)}<span>${ru.short}</span></button>`; }).join('');
   return h;
@@ -249,6 +263,12 @@ function updateTools() {
   ask.classList.toggle('locked', !askOn);
   G.$('[data-ask]', r).innerHTML = !askOn ? G.icon('lock') : st.asked ? G.icon('check') : st.askFree ? '0 s' : '-1 s';
   ask.disabled = askOn && st.asked;
+  const lp = G.$('[data-act="loupe"]', r);
+  const loupeOn = st.boosts.includes('magnifier');
+  lp.hidden = !loupeOn;
+  r.classList.toggle('has-loupe', loupeOn);
+  G.$('[data-loupe]', r).textContent = st.loupeLeft;
+  lp.disabled = st.loupeLeft <= 0;
 }
 
 function setScore(v) {
@@ -314,7 +334,9 @@ function briefing() {
     rulePart = `<div class="brief-new"><div class="brief-badge">Nouvelle règle</div><h3>${G.icon(cfg.newRule.icon)} ${cfg.newRule.title}</h3><p>${cfg.newRule.desc}</p><div class="rule-card">${G.ruleCard(cfg.newRule.id, cfg)}</div><p class="brief-easy">${G.icon('clock')} Pour ce service : plus de temps et moins de fraudeurs, le temps de t'habituer.</p></div>`;
   }
   const mech = cfg.bossMech ? G.BOSS_MECH[cfg.city.id] : null;
-  const poster = st.wanted ? `<div class="wanted-poster"><b>RECHERCHÉ</b>${G.drawPerson(st.wanted, { photo: true })}<span>Son jumeau lui ressemble, à un détail près.</span></div>` : '';
+  let poster = st.wanted ? `<div class="wanted-poster"><b>RECHERCHÉ</b>${G.drawPerson(st.wanted, { photo: true })}<span>Son jumeau lui ressemble, à un détail près.</span></div>` : '';
+  if (st.blacklist) poster = `<div class="blacklist-poster"><b>LISTE NOIRE</b><ul>${st.blacklist.map((n) => `<li>N° ${n}</li>`).join('')}</ul><span>Attention : certains numéros ne diffèrent que d'un chiffre.</span></div>`;
+  if (st.memory) poster = `<div class="memory-poster"><b>${G.icon('camera')} Caméra 3 · portillon nord</b><div class="memory-faces">${st.memory.map((l) => `<div>${G.drawPerson(l, { photo: true })}</div>`).join('')}</div><span>Mémorise bien ces trois visages !</span></div>`;
   const boss = cfg.boss ? `<div class="brief-boss"><div class="boss-tag">${G.icon('skull')} Boss de fin de ligne</div><h3>${cfg.city.boss.name}</h3><p>${cfg.city.boss.desc}</p>${mech ? `<div class="boss-mech"><b>${G.icon('bolt')} ${mech.title}</b><p>${mech.desc}</p></div>` : ''}${poster}</div>` : '';
   const letter = cfg.i === 0 && !cfg.daily && !cfg.endless && !cfg.event && cfg.challengeScore == null && G.STORY.intro[cfg.city.id] ? `<div class="letter"><div class="letter-head">${G.icon('talk')} Lettre du chef</div><p>${G.STORY.intro[cfg.city.id]}</p></div>` : '';
   const eventPart = cfg.event ? `<div class="brief-day"><div class="brief-badge alt">${G.icon('star')} Événement</div><h3>${cfg.event.name}</h3><p>${cfg.event.desc}</p></div>` : '';
@@ -334,6 +356,7 @@ function briefing() {
       ${letter}${eventPart}${challengePart}${endlessPart}${boss}${rulePart}${askPart}${classPart}${dayPart}${objPart}
       <details class="brief-rules" ${cfg.newRule ? '' : 'open'}><summary>À vérifier (${cfg.rules.length})</summary><ul>${ruleList}</ul></details>
       ${cfg.daily ? '<p class="brief-note">Un seul essai par jour, les mêmes passagers pour tout le monde.</p>' : ''}
+      ${boostPicker(cfg)}
       <div class="brief-actions">
         ${cfg.boss && !cfg.daily ? `<button class="btn btn-ad" data-renfort>${G.icon('ad')} Renfort : +1 réputation</button>` : ''}
         <button class="btn btn-primary" data-go>${G.icon('play')} Commencer le service</button>
@@ -355,8 +378,13 @@ function briefing() {
       }
     });
   }
+  G.$$('[data-boost]', m.el).forEach((b) => b.addEventListener('click', () => {
+    G.Audio.sfx('click');
+    b.classList.toggle('on');
+  }));
   G.$('[data-go]', m.el).addEventListener('click', () => {
     G.Audio.sfx('click');
+    applyBoosts(G.$$('[data-boost].on', m.el).map((b) => b.dataset.boost));
     m.close();
     countdown();
   });
@@ -479,12 +507,17 @@ function decide(verdict, timeout, warn) {
   const sp = p.special ? G.SPECIALS.find((s) => s.id === p.special) : null;
 
   // Tampon visuel sur les documents
-  const stamp = G.el('div', `verdict-stamp ${timeout ? 'late' : fined ? 'fine' : warn ? 'warn' : 'ok'}`, timeout ? 'TROP TARD' : fined ? 'AMENDE<small>50 €</small>' : warn ? 'AVERTI' : 'VALIDÉ');
+  const stamp = G.el('div', `verdict-stamp ${G.verdictClass()} ${timeout ? 'late' : fined ? 'fine' : warn ? 'warn' : 'ok'}`, timeout ? 'TROP TARD' : fined ? 'AMENDE<small>50 €</small>' : warn ? 'AVERTI' : 'VALIDÉ');
   e.docs.appendChild(stamp);
   G.Audio.sfx(timeout ? 'alarm' : fined ? 'fine' : 'stamp');
   G.vibrate(fined ? [30, 40, 30] : 25);
 
   st.results.push({ correct, fraud: p.fraud, special: !!p.special });
+  petReact(correct ? 'happy' : 'sad', correct && fined);
+  if (st.cfg.o2) {
+    st.globalTime = Math.min(st.cfg.timeAttack * G.timeScale() * 1.3, st.globalTime + (correct ? 4 : -6));
+    floatText(correct ? 'O₂ +4 s' : 'O₂ −6 s', correct ? 'good' : 'bad');
+  }
   if (!correct) {
     G.Analytics.mistake(timeout ? 'temps écoulé' : fined ? 'innocent verbalisé' : 'fraude ratée (' + (p.hint || '?') + ')');
     st.stats.errors++;
@@ -516,7 +549,7 @@ function decide(verdict, timeout, warn) {
     floatText(`+${G.fmt(gain)}`, 'good');
     if (fined) {
       st.caught++;
-      st.coins += 10 * st.coinMult;
+      st.coins += G.ECO.fine * st.coinMult;
       later(() => {
         G.Audio.sfx('coin');
         e.fines.textContent = st.coins;
@@ -612,7 +645,7 @@ function proceed() {
   ensureQueue();
   if (st.idx - st.stationStartIdx < G.STATION_SIZE) return maybeMiniEvent() || nextPassenger();
   st.stationsCleared = curP().cfg.station - 1;
-  const bonus = 5 * st.stationsCleared;
+  const bonus = G.ECO.station * st.stationsCleared;
   st.coins += bonus;
   st.el.fines.textContent = st.coins;
   G.Audio.sfx('door');
@@ -721,9 +754,10 @@ function loop() {
       const k = G.clamp(st.globalTime / (st.cfg.timeAttack * G.timeScale()), 0, 1);
       st.el.timebar.style.transform = `scaleX(${k})`;
       st.el.timer.classList.toggle('low', st.globalTime < 10);
-      st.el.timetxt.textContent = `${Math.max(0, st.globalTime).toFixed(1).replace('.', ',')} s`;
+      st.el.timetxt.textContent = `${st.cfg.o2 ? 'O₂ ' : ''}${Math.max(0, st.globalTime).toFixed(1).replace('.', ',')} s`;
       if (st.globalTime <= 0) {
-        finish(true);
+        if (st.cfg.o2) G.toast(`${G.icon('bolt')} Plus d'oxygène ! Le dôme est évacué.`);
+        finish(!st.cfg.o2);
         return;
       }
     } else if (st.state === 'inspect' && !st.paused) {
@@ -849,10 +883,12 @@ function onClick(ev) {
     if (act === 'hint') return useHint();
     if (act === 'ask') return useAsk();
     if (act === 'warn') return warnPassenger();
+    if (act === 'loupe') return useLoupe();
   }
   if (ev.target.closest('[data-obj]')) return showObjectives();
   if (ev.target.closest('[data-wanted]')) return showWanted();
   if (ev.target.closest('[data-mystery]')) return showClues();
+  if (ev.target.closest('[data-memory]')) return showMemory();
   const rc = ev.target.closest('[data-rule]');
   if (rc) return showRules();
 }
@@ -1110,8 +1146,9 @@ function finish(completed) {
   const stars = !success ? 0 : cfg.daily ? (lost === 0 ? 3 : lost === 1 ? 2 : 1) : 1 + objDone;
   const correct = st.results.filter((r) => r.correct).length;
   const acc = st.results.length ? Math.round((correct / st.results.length) * 100) : 0;
-  let coins = st.coins + stars * 15 + (cfg.boss && success ? 100 : 0);
-  if (cfg.daily && success) coins += 50;
+  let coins = st.coins + stars * G.ECO.star + (cfg.boss && success ? G.ECO.boss : 0);
+  if (cfg.daily && success) coins += G.ECO.daily;
+  if (st.doubleCoins) coins *= 2;
   const xp = Math.round(st.score / 10);
   const s = G.save;
   const prevRank = G.rankOf(s.xp).index;
@@ -1133,14 +1170,28 @@ function finish(completed) {
   G.missionEvent('combo', st.bestCombo, 'max');
   if (cfg.daily) G.missionEvent('daily');
   if (stars === 3 && !cfg.daily) G.missionEvent('stars3');
-  if (!cfg.daily && !cfg.event) {
+  let weekly = null;
+  if (cfg.weekly) {
+    const w = s.weekly.week === cfg.week ? s.weekly : { week: cfg.week, best: 0, plays: 0, rewarded: false };
+    w.plays++;
+    const record = st.score > w.best;
+    w.best = Math.max(w.best, st.score);
+    let reward = 0;
+    if (success && !w.rewarded) {
+      w.rewarded = true;
+      s.gold += 3;
+      reward = 3;
+    }
+    s.weekly = w;
+    weekly = { record, best: w.best, reward, code: G.makeWeeklyCode(cfg.week, st.score) };
+  } else if (!cfg.daily && !cfg.event) {
     if (stars > (s.levels[cfg.g] || 0)) {
       if (!s.levels[cfg.g]) firstClear = stars > 0;
       s.levels[cfg.g] = stars;
     }
     s.best[cfg.g] = Math.max(s.best[cfg.g] || 0, st.score);
     if (firstClear && cfg.boss) s.gold += 5;
-  } else {
+  } else if (cfg.daily) {
     const yesterday = G.dayKey(G.addDays(G.today(), -1));
     s.daily.streak = s.daily.prevKey === yesterday ? s.daily.streak + 1 : 1;
     s.daily.prevKey = G.dayKey();
@@ -1159,10 +1210,10 @@ function finish(completed) {
   G.Cloud.flush();
   const unlocked = G.checkAchievements();
   const story = firstClear && cfg.boss ? G.STORY.outro[cfg.city.id] : null;
-  const challengeCode = !cfg.daily && !cfg.event ? G.makeChallengeCode(cfg.g, st.seed, st.score) : null;
+  const challengeCode = !cfg.daily && !cfg.event && !cfg.weekly ? G.makeChallengeCode(cfg.g, st.seed, st.score) : null;
   const rushInfo = cfg.bossMech === 'rush' ? { done: correctCount, target: cfg.rushTarget } : null;
   const mystery = st.mystery ? { solved: st.mystery.solved } : null;
-  G.UI.results({ cfg, success, stars, score: st.score, correct, total: st.results.length, acc, caught: st.caught, bestCombo: st.bestCombo, coins, xp, newAlbum: st.newAlbum.slice(), bestMoment: st.bestMoment, rankUp, firstClear, objectives, unlocked, story, challengeCode, challenge: cfg.challengeScore != null ? { target: cfg.challengeScore, beat: st.score > cfg.challengeScore } : null, eventReward, rushInfo, mystery });
+  G.UI.results({ cfg, success, stars, score: st.score, correct, total: st.results.length, acc, caught: st.caught, bestCombo: st.bestCombo, coins, xp, newAlbum: st.newAlbum.slice(), bestMoment: st.bestMoment, rankUp, firstClear, objectives, unlocked, story, challengeCode, challenge: cfg.challengeScore != null ? { target: cfg.challengeScore, beat: st.score > cfg.challengeScore } : null, eventReward, rushInfo, mystery, weekly });
   Game.cleanup();
 }
 
@@ -1172,7 +1223,7 @@ function finishEndless() {
   const stations = st.stationsCleared;
   const correct = st.results.filter((r) => r.correct).length;
   const acc = st.results.length ? Math.round((correct / st.results.length) * 100) : 0;
-  const coins = st.coins + stations * 10;
+  const coins = st.coins + stations * G.ECO.endlessStation;
   const xp = Math.round(st.score / 10);
   const prevRank = G.rankOf(s.xp).index;
   const record = st.score > s.endless.best;
@@ -1237,7 +1288,7 @@ function rewardEvent(score, coins, text) {
 function endWatch() {
   const ok = st.watch.ok;
   st.watch = null;
-  if (ok) later(() => rewardEvent(300, 30, "Bravo ! L'inspecteur te félicite : +300"), 400);
+  if (ok) later(() => rewardEvent(300, 12, "Bravo ! L'inspecteur te félicite : +300"), 400);
   else later(() => G.toast(`${G.icon('cross')} L'inspecteur a noté une erreur. Pas de prime cette fois.`), 400);
 }
 
@@ -1260,7 +1311,7 @@ function runChase(done) {
     if (over) return;
     over = true;
     ov.remove();
-    if (won) rewardEvent(200, 20, 'Rattrapé ! +200');
+    if (won) rewardEvent(200, 8, 'Rattrapé ! +200');
     else G.toast(`${G.icon('cross')} Il a filé… Pas grave, l'amende est encaissée.`);
     st.state = 'resolve';
     later(done, 500);
@@ -1301,7 +1352,7 @@ function runPickpocket(done) {
     if (over) return;
     over = true;
     ov.remove();
-    if (won) rewardEvent(150, 15, 'Voleur attrapé ! +150');
+    if (won) rewardEvent(150, 6, 'Voleur attrapé ! +150');
     else G.toast(`${G.icon('cross')} Raté, le voleur s'est échappé.`);
     st.state = 'idle';
     later(done, 500);
@@ -1429,7 +1480,7 @@ function accuse(done) {
     m.close();
     if (my.solved) {
       setScore(st.score + 500);
-      st.coins += 100;
+      st.coins += G.ECO.mystery;
       G.Audio.sfx('open');
       G.toast(`${G.icon('trophy')} Coupable démasqué ! +500 points`, 'gold');
     } else {
@@ -1438,4 +1489,81 @@ function accuse(done) {
     }
     setTimeout(done, 900);
   }));
+}
+
+/* ---------- Bonus à usage unique (choisis au briefing) ---------- */
+function boostPicker(cfg) {
+  if (!G.boostsAllowed(cfg)) return '';
+  const owned = G.CONSUMABLES.filter((c) => (G.save.items[c.id] || 0) > 0);
+  if (!owned.length) return '';
+  return `<div class="boost-pick"><h4>${G.icon('bolt')} Bonus pour ce service</h4><div class="boost-row">${owned.map((c) => `<button class="boost-btn" data-boost="${c.id}">${G.icon(c.icon)}<span>${c.name}</span><em>×${G.save.items[c.id]}</em></button>`).join('')}</div></div>`;
+}
+
+function applyBoosts(ids) {
+  if (!st || !ids.length) return;
+  ids.forEach((id) => {
+    if (!(G.save.items[id] > 0)) return;
+    G.save.items[id]--;
+    st.boosts.push(id);
+    if (id === 'coffee') {
+      st.timeBonus += 2;
+      st.time += 2 * G.timeScale();
+    }
+    if (id === 'magnifier') st.loupeLeft += 3;
+    if (id === 'double') st.doubleCoins = true;
+  });
+  G.persist();
+  updateTools();
+  G.toast(`${G.icon('bolt')} Bonus actif : ${st.boosts.map((id) => G.CONSUMABLES.find((c) => c.id === id).name).join(', ')}`, 'gold');
+}
+
+/* Loupe : désigne le détail suspect du passager, ou confirme que tout va bien */
+function useLoupe() {
+  if (!st || st.state !== 'inspect' || st.paused || st.loupeLeft <= 0) return;
+  const p = curP();
+  st.loupeLeft--;
+  updateTools();
+  G.Audio.sfx('uv');
+  const fraud = st.cfg.inverted ? !p.fraud : p.fraud;
+  if (!fraud) return G.toast(`${G.icon('loupe')} La loupe ne trouve rien de suspect.`, 'good');
+  const el = p.hint && G.$(`[data-f="${p.hint}"]`, st.el.docs);
+  if (el) {
+    el.classList.remove('loupe-hit');
+    void el.offsetWidth;
+    el.classList.add('loupe-hit');
+  }
+  G.toast(`${G.icon('loupe')} ${el ? 'Regarde bien ce détail…' : 'Ce passager cache quelque chose…'}`, 'gold');
+}
+
+/* Compagnon : petite réaction à chaque décision */
+function petReact(mood, catchIt) {
+  const pet = G.cosEquipped('pet');
+  if (!st.el.pet || pet === 'none') return;
+  const el = st.el.pet;
+  el.classList.remove('pet-happy', 'pet-sad');
+  void el.offsetWidth;
+  el.classList.add(mood === 'happy' ? 'pet-happy' : 'pet-sad');
+  if (catchIt || mood !== 'happy' || Math.random() < 0.35) {
+    st.el.petSay.textContent = G.petSay(pet, mood);
+    st.el.petSay.hidden = false;
+    later(() => { if (st && st.el.petSay) st.el.petSay.hidden = true; }, 1100);
+  }
+}
+
+/* ---------- Boss de Berlin : revoir les images des caméras ---------- */
+function showMemory() {
+  if (!st || !st.memory) return;
+  const was = st.paused;
+  st.paused = true;
+  if (st.state === 'inspect') {
+    setScore(Math.max(0, st.score - 150));
+    floatText('-150', 'bad');
+  }
+  const m = G.modal(`<div class="wanted-modal"><div class="memory-poster"><b>${G.icon('camera')} Caméra 3 · portillon nord</b><div class="memory-faces">${st.memory.map((l) => `<div>${G.drawPerson(l, { photo: true })}</div>`).join('')}</div><span>Verbalise-les, même avec un ticket valable.</span></div><button class="btn btn-primary" data-ok>Reprendre</button></div>`);
+  const close = () => {
+    m.close();
+    if (st) st.paused = was;
+  };
+  G.$('[data-ok]', m.el).addEventListener('click', close);
+  m.onDismiss = close;
 }
