@@ -875,20 +875,32 @@ function setupSwipe() {
   let sy = 0;
   let dx = 0;
   let active = false;
+  let lamp = false; // wagon dans le noir : le doigt sur les documents déplace la lampe, il ne fait pas glisser
   let target = null;
   const zone = (t) => t.closest('[data-docs], [data-pax]');
   area.addEventListener('pointerdown', (ev) => {
     if (!st || st.state !== 'inspect' || st.paused) return;
     if (!zone(ev.target)) return;
-    active = true;
     sx = ev.clientX;
     sy = ev.clientY;
     dx = 0;
     target = ev.target;
+    if (st.cfg.dark && ev.target.closest('[data-docs]')) {
+      lamp = true;
+      moveLamp(ev);
+      return;
+    }
+    active = true;
   });
   area.addEventListener('pointermove', (ev) => {
-    if (st && st.cfg.dark) moveLamp(ev);
-    if (!active || !st) return;
+    if (!st) return;
+    // À la souris, la lampe suit le pointeur ; au doigt, seulement pendant qu'il touche les documents
+    if (st.cfg.dark && (lamp || ev.pointerType === 'mouse')) moveLamp(ev);
+    if (lamp) {
+      ev.preventDefault();
+      return;
+    }
+    if (!active) return;
     dx = ev.clientX - sx;
     if (Math.abs(dx) > 8 && Math.abs(dx) > Math.abs(ev.clientY - sy)) {
       st.root.style.setProperty('--dx', `${dx}px`);
@@ -899,6 +911,10 @@ function setupSwipe() {
     }
   });
   const end = () => {
+    if (lamp) {
+      lamp = false;
+      return;
+    }
     if (!active || !st) return;
     active = false;
     st.root.classList.remove('dragging', 'drag-left', 'drag-right');

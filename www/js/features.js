@@ -31,7 +31,7 @@ G.BOSS_MECH = {
   london: { id: 'uvfake', title: 'Faux parfaits', desc: "Les faux tampons du Faussaire sont identiques aux vrais. Seule la lampe UV les révèle : elle est illimitée pendant ce combat." },
   tokyo: { id: 'rush', title: 'Contre la montre', desc: "Pas de chrono par passager : tu as 75 secondes pour en contrôler au moins 18. Les erreurs coûtent toujours un bouclier." },
   moscou: { id: 'groups', title: 'Les sœurs voyagent ensemble', desc: 'Les passagers arrivent en groupes. Compte les têtes : le ticket doit couvrir tout le monde.' },
-  nuit: { id: 'dark', title: 'Dans le noir', desc: "La rame est plongée dans le noir. Promène ton doigt sur les documents pour les éclairer à la lampe torche. Le zoom ne marche pas dans le noir." },
+  nuit: { id: 'dark', title: 'Dans le noir', desc: "La rame est plongée dans le noir. Promène ton doigt sur les documents pour les éclairer à la lampe torche (le zoom ne marche pas dans le noir). Pour décider, utilise les boutons ou fais glisser le passager." },
   express: { id: 'mystery', title: "L'enquête", desc: "Un coupable se cache parmi les passagers. Chaque bonne décision peut révéler un indice. À la fin, désigne le coupable parmi 4 suspects." },
 };
 

@@ -1115,3 +1115,7 @@ html.calm *, html.calm *::before, html.calm *::after { animation-duration: .01ms
 .title-save { position: relative; width: 100%; max-width: 340px; }
 .title-save:empty { display: none; }
 .set-info.danger { background: #fff1d6; }
+/* Wagon dans le noir : le doigt promène la lampe sans faire défiler ni glisser l'écran */
+.dark .docs { touch-action: none; transform: none; }
+/* Le glissé gauche/droite (valider, verbaliser) appartient au jeu : le navigateur ne doit ni défiler ni zoomer */
+.game-screen [data-docs], .game-screen [data-pax], .game-screen .scene { touch-action: none; }
