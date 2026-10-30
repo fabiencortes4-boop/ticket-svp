@@ -8,6 +8,7 @@ const A = (G.Audio = {
   ready: false,
   current: null,
   tempoMul: 1,
+  pitchMul: 1, // mode Cauchemar : musique plus grave
 });
 
 const NOTE_INDEX = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
@@ -282,7 +283,7 @@ function scheduleStep(song, step, t) {
   const sd = stepDur(song);
   for (const tr of song.tracks) {
     const ev = tr.events[step];
-    if (ev) voice(tr.wave, freqOf(ev.midi), t, ev.len * sd * 0.92, tr.vol, A.music);
+    if (ev) voice(tr.wave, freqOf(ev.midi) * A.pitchMul, t, ev.len * sd * 0.92, tr.vol, A.music);
   }
   if (song.drums) {
     const ch = song.drums[step % song.drums.length];
@@ -304,6 +305,7 @@ A.play = (name, opts = {}) => {
   const song = A.compiled[name];
   if (!song) return;
   A.tempoMul = opts.tempo || 1;
+  A.pitchMul = opts.pitch || 1;
   const st = { name, song, step: 0, next: A.ctx.currentTime + 0.06, onEnd: opts.onEnd };
   A.current = st;
   st.timer = setInterval(() => {

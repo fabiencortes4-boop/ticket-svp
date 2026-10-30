@@ -51,6 +51,8 @@ G.Analytics = (() => {
     if (cfg.daily) return 'daily';
     if (cfg.endless) return 'endless';
     if (cfg.event) return 'event';
+    if (cfg.weekly) return 'weekly';
+    if (cfg.nightmare) return 'N' + cfg.g;
     return String(cfg.g);
   }
   function lv(k) {

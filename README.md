@@ -5,12 +5,13 @@ Jeu mobile en français : tu es contrôleur de métro et tu as quelques secondes
 - **100 % original et libre de droits** : personnages, décors, icônes et musique sont générés par le code (SVG + synthé 8 bits WebAudio). Aucun fichier image ni son externe.
 - **Sans dépendance** : HTML, CSS et JavaScript, prêt à être empaqueté en application Android avec Capacitor.
 
-## Contenu de la version 1.2
+## Contenu de la version 1.3
 
 | Élément | Détail |
 | --- | --- |
 | Villes | Bus de campagne (tutoriel), Paris, Londres, Tokyo, Moscou, Train de nuit, Le Grand Express, New York, Berlin, Venise, Colonie de Mars : 110 services, dont 11 boss, chacune avec son décor, son paysage et sa musique |
 | Modes | Campagne, Contrôle du jour, Défi de la semaine (thème différent chaque lundi, code à partager entre amis), Ligne infinie (stations sans fin, un bonus au choix parmi 3 toutes les 2 stations, record personnel), défi d'un ami par code, un événement presque chaque mois (Nouvel an lunaire, Saint-Valentin, Carnaval, Poisson d'avril, Pâques, Fête des fleurs, Fête de la musique, Été, Rentrée, Halloween, Noël) |
+| Mode Cauchemar | Interrupteur sur la carte, ouvert une fois toutes les règles apprises (service 61) : ambiance sombre et pluvieuse, musique ralentie, toutes les règles dès le premier service, −25 % de temps, 2 erreurs permises, fraudes à un détail près, papiers « possédés » dont la date change sous les yeux. Lunes rouges comptées à part, pièces doublées, 5 objets exclusifs et 2 succès |
 | Boss | Une mécanique unique par ville : avis de recherche, fausses moustaches à arracher, faux tampons parfaits sous UV, heure de pointe chronométrée, groupes, wagon dans le noir à la lampe, enquête à indices, liste noire de tickets volés, visages filmés par les caméras à mémoriser, vaporetto qui tangue, jauge d'oxygène |
 | Imprévus | Mini-événements en cours de service (course-poursuite, pickpocket, inspecteur qui observe), passagers spéciaux surprises, mode Fièvre tous les 10 combos, avertissement des petites infractions |
 | Histoire | Une lettre du chef de réseau avant et après chaque ville |

@@ -158,9 +158,12 @@ function landmarkSvg(id) {
 
 /* ---------- Carte du monde ---------- */
 UI.map = () => {
-  G.Audio.play('map');
   const s = G.save;
-  const root = G.el('div', 'screen map-screen');
+  const nm = s.nightmare.on && G.nightmareUnlocked();
+  const mopt = nm ? { tempo: 0.82, pitch: 0.89 } : {};
+  if (G.Audio.current && G.Audio.current.name === 'map' && (G.Audio.pitchMul || 1) !== (mopt.pitch || 1)) mopt.restart = true;
+  G.Audio.play('map', mopt);
+  const root = G.el('div', `screen map-screen${nm ? ' nightmare-map' : ''}`);
   const dailyDone = s.daily.last === G.dayKey();
   const chestReady = s.chest.last !== G.dayKey();
   const cities = G.CITIES.map((city, ci) => {
@@ -169,13 +172,13 @@ UI.map = () => {
     const stars = G.cityStars(ci);
     const nodes = Array.from({ length: G.LEVELS_PER_CITY }, (_, i) => {
       const g = first + i;
-      const st = s.levels[g] || 0;
+      const st = (nm ? s.nightmare.levels[g] : s.levels[g]) || 0;
       const open = G.isLevelUnlocked(g);
       const boss = i === G.LEVELS_PER_CITY - 1;
       const cur = open && !st;
       return `<button class="node ${boss ? 'boss' : ''} ${open ? 'open' : 'locked'} ${cur ? 'current' : ''}" data-level="${g}" ${open ? '' : 'disabled'} aria-label="Service ${i + 1}">
         <span class="node-n">${open ? (boss ? G.icon('skull') : i + 1) : G.icon('lock')}</span>
-        <span class="node-stars">${[1, 2, 3].map((k) => `<i class="${st >= k ? 'on' : ''}">${G.icon('star')}</i>`).join('')}</span>
+        <span class="node-stars">${[1, 2, 3].map((k) => `<i class="${st >= k ? 'on' : ''}">${G.icon(nm ? 'moon' : 'star')}</i>`).join('')}</span>
       </button>`;
     }).join('');
     return `<section class="city ${unlocked ? '' : 'city-locked'}" style="--line:${city.lineColor};--city-bg:${city.theme.wall};--city-ink:${city.ticket.ink}">
@@ -183,7 +186,7 @@ UI.map = () => {
         ${landmarkSvg(city.id)}
         <div class="city-badge">${ci + 1}</div>
         <div class="city-names"><h2>${city.name}</h2><p>${city.line}</p></div>
-        <div class="city-stars">${G.icon('star')}<b>${stars}</b>/30</div>
+        <div class="city-stars">${G.icon(nm ? 'moon' : 'star')}<b>${nm ? Array.from({ length: G.LEVELS_PER_CITY }, (_, i) => s.nightmare.levels[first + i] || 0).reduce((a, b) => a + b, 0) : stars}</b>/30</div>
       </div>
       ${unlocked ? `<div class="track"><div class="rail"></div>${nodes}</div>` : `<div class="city-lock">${G.icon('lock')}<span>Bats le boss de ${G.CITIES[ci - 1].name} pour débloquer cette ville</span></div>`}
     </section>`;
@@ -201,6 +204,7 @@ UI.map = () => {
           <span>${chestReady ? 'Coffre du jour' : s.chest.extra ? 'Demain !' : 'Bonus pub'}</span>
         </button>
       </div>
+      ${nightmareSwitch(nm)}
       ${eventCard()}
       ${weeklyCard()}
       ${endlessCard()}
@@ -218,8 +222,9 @@ UI.map = () => {
     const n = ev.target.closest('[data-level]');
     if (n && !n.disabled) {
       G.Audio.sfx('click');
-      G.Game.start(G.levelConfig(Number(n.dataset.level)));
+      G.Game.start(nm ? G.nightmareConfig(Number(n.dataset.level)) : G.levelConfig(Number(n.dataset.level)));
     }
+    if (ev.target.closest('[data-nightmare]')) toggleNightmare();
     if (ev.target.closest('[data-chest]')) openChest();
     if (ev.target.closest('[data-event]')) {
       G.Audio.sfx('click');
@@ -339,6 +344,43 @@ function copyText(txt, preview) {
   } catch (e) {
     fallback();
   }
+}
+
+function nightmareSwitch(nm) {
+  const open = G.nightmareUnlocked();
+  return `<button class="nm-switch ${nm ? 'on' : ''} ${open ? '' : 'locked'}" data-nightmare role="switch" aria-checked="${nm}">
+    <span class="nm-icon">${G.icon(open ? 'moon' : 'lock')}</span>
+    <span class="nm-txt"><b>Mode Cauchemar</b><small>${open ? (nm ? `Activé · ${G.nightmareMoons()} lune${G.nightmareMoons() > 1 ? 's' : ''} rouge${G.nightmareMoons() > 1 ? 's' : ''}` : 'Fais glisser pour plonger dans le cauchemar') : `S'ouvre après le service ${G.NIGHTMARE_UNLOCK + 1} (Grand Express)`}</small></span>
+    <span class="nm-track"><i></i></span>
+  </button>`;
+}
+
+function toggleNightmare() {
+  const s = G.save;
+  if (!G.nightmareUnlocked()) {
+    G.Audio.sfx('click');
+    return G.toast(`${G.icon('lock')} Apprends toutes les règles d'abord : termine le service ${G.NIGHTMARE_UNLOCK + 1}, au Grand Express.`);
+  }
+  s.nightmare.on = !s.nightmare.on;
+  G.persist();
+  G.Audio.sfx(s.nightmare.on ? 'alarm' : 'click');
+  G.vibrate(s.nightmare.on ? [40, 60, 40] : 20);
+  if (s.nightmare.on && !s.nightmare.seen) {
+    s.nightmare.seen = true;
+    G.persist();
+    UI.map();
+    const m = G.modal(`<div class="nm-intro"><div class="nm-intro-icon">${G.icon('moon')}</div><h2>Bienvenue dans le cauchemar</h2>
+      <ul class="obj-list">
+        <li class="obj"><i>${G.icon('clock')}</i><span>25 % de temps en moins par passager</span></li>
+        <li class="obj"><i>${G.icon('shield')}</i><span>2 erreurs permises au lieu de 3</span></li>
+        <li class="obj"><i>${G.icon('ticket')}</i><span>Toutes les règles dès le premier service, et des fraudes à un détail près</span></li>
+        <li class="obj"><i>${G.icon('skull')}</i><span>Papiers possédés : une date peut changer sous tes yeux. Vérifie jusqu'au bout !</span></li>
+        <li class="obj"><i>${G.icon('moon')}</i><span>Des lunes rouges à gagner, et des objets introuvables ailleurs. Pièces doublées.</span></li>
+      </ul><button class="btn btn-primary" data-ok>J'ose</button></div>`, { cls: 'modal-nm' });
+    G.$('[data-ok]', m.el).addEventListener('click', () => m.close());
+    return;
+  }
+  UI.map();
 }
 
 function weeklyCard() {
@@ -590,10 +632,10 @@ UI.shop = (tab = 'tools', sub = 'stamp') => {
     }).join('');
   } else if (tab === 'uniforms') {
     body = `<div class="uni-grid">${G.UNIFORMS.map((u) => {
-      const owned = s.owned.includes(u.id);
+      const owned = s.owned.includes(u.id) || (u.moons && G.nightmareMoons() >= u.moons);
       const eq = s.uniform === u.id;
       return `<div class="uni ${eq ? 'eq' : ''}"><div class="uni-portrait">${G.drawPerson(G.conductorLook(u.id), { photo: true, mood: eq ? 'happy' : 'neutral' })}</div><b>${u.name}</b>
-        ${eq ? `<span class="uni-state">${G.icon('check')} Porté</span>` : owned ? `<button class="btn btn-small" data-wear="${u.id}">Porter</button>` : `<button class="btn btn-small btn-buy" data-buy-uni="${u.id}" ${s.gold < u.cost ? 'disabled' : ''}>${G.icon('gold')}${u.cost}</button>`}</div>`;
+        ${eq ? `<span class="uni-state">${G.icon('check')} Porté</span>` : u.moons && !owned ? `<span class="cos-lock moon">${G.icon('moon')} ${u.moons} lunes rouges</span>` : owned ? `<button class="btn btn-small" data-wear="${u.id}">Porter</button>` : `<button class="btn btn-small btn-buy" data-buy-uni="${u.id}" ${s.gold < u.cost ? 'disabled' : ''}>${G.icon('gold')}${u.cost}</button>`}</div>`;
     }).join('')}</div>`;
   } else {
     const today = G.dayKey();
@@ -905,14 +947,14 @@ function howTo() {
 UI.results = (r) => {
   const { cfg } = r;
   const nextG = cfg.g + 1;
-  const canNext = !cfg.daily && !cfg.event && !cfg.weekly && cfg.challengeScore == null && r.success && nextG < G.TOTAL_LEVELS;
-  const title = cfg.daily ? (r.success ? 'Défi terminé !' : 'Défi raté') : r.success ? (r.stars === 3 ? 'Service parfait !' : 'Service terminé !') : 'Service raté';
+  const canNext = !cfg.daily && !cfg.event && !cfg.weekly && cfg.challengeScore == null && r.success && nextG < G.TOTAL_LEVELS && (!cfg.nightmare || G.isLevelUnlocked(nextG));
+  const title = cfg.nightmare ? (r.success ? (r.stars === 3 ? 'Cauchemar maîtrisé !' : 'Tu as survécu…') : 'Le cauchemar continue…') : cfg.daily ? (r.success ? 'Défi terminé !' : 'Défi raté') : r.success ? (r.stars === 3 ? 'Service parfait !' : 'Service terminé !') : 'Service raté';
   const m = G.modal(`
-    <div class="results ${r.success ? 'win' : 'lose'}">
+    <div class="results ${r.success ? 'win' : 'lose'}${cfg.nightmare ? ' nm' : ''}">
       <div class="res-ribbon">${cfg.label}</div>
       <h2>${title}</h2>
-      <div class="res-stars">${[1, 2, 3].map((k) => `<i class="${r.stars >= k ? 'on' : ''}" style="--d:${k * 0.25}s">${G.icon('star')}</i>`).join('')}</div>
-      <div class="res-score"><span>Score</span><b data-rscore>0</b>${cfg.weekly ? (r.weekly && r.weekly.record && r.score > 0 ? '<em>Record de la semaine !</em>' : '') : !cfg.daily && G.save.best[cfg.g] === r.score && r.score > 0 ? '<em>Record !</em>' : ''}</div>
+      <div class="res-stars">${[1, 2, 3].map((k) => `<i class="${r.stars >= k ? 'on' : ''}" style="--d:${k * 0.25}s">${G.icon(cfg.nightmare ? 'moon' : 'star')}</i>`).join('')}</div>
+      <div class="res-score"><span>Score</span><b data-rscore>0</b>${cfg.nightmare ? (G.save.nightmare.best[cfg.g] === r.score && r.score > 0 ? '<em>Record !</em>' : '') : cfg.weekly ? (r.weekly && r.weekly.record && r.score > 0 ? '<em>Record de la semaine !</em>' : '') : !cfg.daily && G.save.best[cfg.g] === r.score && r.score > 0 ? '<em>Record !</em>' : ''}</div>
       <div class="res-grid">
         <div><b>${r.caught}</b><span>fraudeurs attrapés</span></div>
         <div><b>${r.acc} %</b><span>précision</span></div>
@@ -928,6 +970,7 @@ UI.results = (r) => {
       ${r.firstClear && cfg.boss ? `<div class="res-rank">${G.icon('gold')} Boss vaincu : +5 tickets d'or</div>` : ''}
       ${r.rushInfo ? `<div class="res-rank">${G.icon('clock')} ${r.rushInfo.done}/${r.rushInfo.target} passagers bien contrôlés${r.rushInfo.done >= r.rushInfo.target ? '' : ' : objectif manqué'}</div>` : ''}
       ${r.mystery && r.mystery.solved !== null && r.mystery.solved !== undefined ? `<div class="res-rank">${G.icon('camera')} ${r.mystery.solved ? 'Coupable démasqué : +500 points' : 'Le coupable a filé…'}</div>` : ''}
+      ${cfg.nightmare ? `<div class="res-ach nm-moons"><b>${G.icon('moon')} ${G.nightmareMoons()} lune${G.nightmareMoons() > 1 ? 's' : ''} rouge${G.nightmareMoons() > 1 ? 's' : ''} en tout</b><span>${nextMoonReward()}</span></div>` : ''}
       ${r.weekly ? `<div class="res-ach"><b>${G.icon('trophy')} Défi de la semaine</b><span>Ton meilleur score : ${G.fmt(r.weekly.best)} pts${r.weekly.reward ? ` · +${r.weekly.reward} tickets d'or` : ''}</span></div><button class="btn btn-ghost btn-challenge" data-wshare>${G.icon('share')} Défier mes amis cette semaine</button><p class="share-preview" data-wprev hidden></p>` : ''}
       ${r.eventReward ? `<div class="res-rank">${G.icon('gold')} Événement réussi : +${r.eventReward} tickets d'or</div>` : ''}
       ${r.challenge ? `<div class="res-ach"><b>${G.icon('trophy')} ${r.challenge.beat ? 'Défi réussi : tu bats ton ami !' : 'Défi raté'}</b><span>Score à battre : ${G.fmt(r.challenge.target)}</span></div>` : ''}
@@ -961,9 +1004,9 @@ UI.results = (r) => {
     G.Audio.sfx('coin');
   });
   const nx = G.$('[data-next]', m.el);
-  if (nx) nx.addEventListener('click', () => leave(() => G.Game.start(G.levelConfig(nextG))));
+  if (nx) nx.addEventListener('click', () => leave(() => G.Game.start(cfg.nightmare ? G.nightmareConfig(nextG) : G.levelConfig(nextG))));
   const rt = G.$('[data-retry]', m.el);
-  const again = () => (cfg.weekly ? Object.assign(G.weeklyConfig(), cfg.challengeScore != null ? { challengeScore: cfg.challengeScore } : {}) : cfg.event ? G.eventConfig(cfg.event) : cfg.challengeScore != null ? Object.assign(G.levelConfig(cfg.g), { seed: cfg.seed, challengeScore: cfg.challengeScore }) : G.levelConfig(cfg.g));
+  const again = () => (cfg.nightmare ? G.nightmareConfig(cfg.g) : cfg.weekly ? Object.assign(G.weeklyConfig(), cfg.challengeScore != null ? { challengeScore: cfg.challengeScore } : {}) : cfg.event ? G.eventConfig(cfg.event) : cfg.challengeScore != null ? Object.assign(G.levelConfig(cfg.g), { seed: cfg.seed, challengeScore: cfg.challengeScore }) : G.levelConfig(cfg.g));
   if (rt) rt.addEventListener('click', () => leave(() => G.Game.start(again())));
   const ch = G.$('[data-challenge]', m.el);
   if (ch) ch.addEventListener('click', () => {
@@ -1067,6 +1110,7 @@ function styleShop(cat) {
     let action;
     if (eq) action = `<span class="uni-state">${G.icon('check')} Équipé</span>`;
     else if (owned) action = `<button class="btn btn-small" data-equip-cos="${cat}:${it.id}">Équiper</button>`;
+    else if (it.moons) action = `<span class="cos-lock moon">${G.icon('moon')} ${it.moons} lunes rouges (${G.nightmareMoons()})</span>`;
     else if (it.collection) {
       const col = G.COLLECTIONS.find((c) => c.id === it.collection);
       action = `<span class="cos-lock">${G.icon('album')} Collection « ${col.name} »</span>`;
@@ -1075,7 +1119,7 @@ function styleShop(cat) {
       const cost = it.price.gold || it.price.coins;
       action = `<button class="btn btn-small btn-buy" data-buy-cos="${cat}:${it.id}" ${(gold ? s.gold : s.coins) < cost ? 'disabled' : ''}>${G.icon(gold ? 'gold' : 'coin')}${G.fmt(cost)}</button>`;
     }
-    const badge = it.event ? `<span class="cos-badge ev">${G.icon('star')} ${ev && ev.id === it.event ? `Événement · ${G.eventEndText(ev)}` : 'Édition limitée'}</span>` : it.collection ? `<span class="cos-badge col">Exclusif</span>` : '';
+    const badge = it.moons ? `<span class="cos-badge nmb">${G.icon('moon')} Cauchemar</span>` : it.event ? `<span class="cos-badge ev">${G.icon('star')} ${ev && ev.id === it.event ? `Événement · ${G.eventEndText(ev)}` : 'Édition limitée'}</span>` : it.collection ? `<span class="cos-badge col">Exclusif</span>` : '';
     return `<div class="cos ${eq ? 'eq' : ''}">${cosPreview(cat, it.id)}<b>${it.name}</b><small>${it.desc}</small>${badge}${action}</div>`;
   }).join('');
   return `${sub}<div class="cos-grid">${cards}</div><p class="shop-note">Les objets « Exclusif » se gagnent en complétant les collections de l'album. Les éditions limitées ne sont en vente que pendant leur événement.</p>`;
@@ -1123,4 +1167,12 @@ function collectionsPage() {
       collectionsPage();
     }
   });
+}
+
+/* Prochain objet à débloquer avec les lunes rouges */
+function nextMoonReward() {
+  const moons = G.nightmareMoons();
+  const all = [].concat(...Object.entries(G.COSMETICS).map(([, list]) => list.filter((x) => x.moons)), G.UNIFORMS.filter((u) => u.moons));
+  const next = all.filter((x) => x.moons > moons).sort((a, b) => a.moons - b.moons)[0];
+  return next ? `Prochain trésor : ${next.name} à ${next.moons} lunes` : 'Tous les trésors du cauchemar sont à toi !';
 }

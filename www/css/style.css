@@ -1274,3 +1274,56 @@ html.calm *, html.calm *::before, html.calm *::after { animation-duration: .01ms
 /* ---------- Défi de la semaine ---------- */
 .weekly-card { background: linear-gradient(120deg, #c2410c, #f2a93b 60%, #ffd23f); }
 .weekly-card .ec-icon .ic { width: 28px; height: 28px; }
+
+/* ---------- Mode Cauchemar : interrupteur de la carte ---------- */
+.nm-switch { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; padding: 10px 14px; border-radius: var(--r); color: #fff; border: 3px solid var(--ink); box-shadow: var(--shadow); background: linear-gradient(120deg, #2b2f4a, #3b2240); }
+.nm-switch.on { background: linear-gradient(120deg, #3a0a12, #7a1020 60%, #2a0610); box-shadow: var(--shadow), 0 0 18px rgba(233, 79, 79, .45); }
+.nm-switch.locked { filter: grayscale(.85); opacity: .75; }
+.nm-icon { width: 42px; height: 42px; border-radius: 12px; display: grid; place-items: center; background: rgba(0, 0, 0, .3); flex: none; color: #ff6b6b; }
+.nm-icon .ic { width: 24px; height: 24px; }
+.nm-txt { flex: 1; display: flex; flex-direction: column; }
+.nm-txt b { font-family: var(--f-display); font-weight: 400; font-size: 18px; }
+.nm-txt small { font-size: 12px; opacity: .85; }
+.nm-track { position: relative; width: 56px; height: 30px; border-radius: 99px; background: #5c677d; border: 3px solid var(--ink); flex: none; transition: background .25s; }
+.nm-track i { position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; border-radius: 50%; background: #fff; border: 2px solid var(--ink); transition: transform .25s cubic-bezier(.3, 1.6, .5, 1); }
+.nm-switch.on .nm-track { background: #e94f4f; }
+.nm-switch.on .nm-track i { transform: translateX(26px); background: #ffd6d6; }
+.nm-intro { text-align: center; }
+.nm-intro-icon { width: 64px; height: 64px; margin: 0 auto 6px; border-radius: 50%; display: grid; place-items: center; background: #2a0610; color: #ff6b6b; border: 3px solid var(--ink); }
+.nm-intro-icon .ic { width: 34px; height: 34px; }
+.nm-intro .obj-list { text-align: left; margin: 10px 0 14px; }
+
+/* Carte en mode Cauchemar */
+.nightmare-map { background: #14080c; }
+.nightmare-map .map-scroll { background: radial-gradient(circle at 50% 0, #3a0a12, #14080c 70%); }
+.nightmare-map .city { filter: saturate(.6) brightness(.85); box-shadow: 0 4px 0 #000, 0 0 0 2px rgba(233, 79, 79, .35); }
+.nightmare-map .node.open .node-n { background: #2a0610; color: #ffd6d6; }
+.nightmare-map .node.current .node-n { box-shadow: 0 0 0 4px #e94f4f; }
+.nightmare-map .node-stars i.on .ic { color: #ff4d4d; }
+.nightmare-map .map-foot { color: #c9a0a0; }
+
+/* ---------- Mode Cauchemar : ambiance en jeu ---------- */
+.nightmare .hud { background: linear-gradient(#2a0610, #1b0a10); }
+.nightmare .scene-svg { filter: sepia(.45) saturate(1.35) hue-rotate(-30deg) brightness(.6) contrast(1.1); }
+.nightmare .scene::before { content: ''; position: absolute; inset: 0 0 52% 0; z-index: 1; pointer-events: none; opacity: .35; background: repeating-linear-gradient(105deg, transparent 0 14px, rgba(200, 220, 255, .55) 14px 15px, transparent 15px 34px); background-size: 200% 200%; animation: nmRain .5s linear infinite; }
+.nightmare .scene::after { content: ''; position: absolute; inset: 0; z-index: 2; pointer-events: none; background: radial-gradient(ellipse at 50% 40%, rgba(70, 0, 15, .12) 30%, rgba(50, 0, 10, .7) 100%); animation: nmFlicker 7s steps(1) infinite; }
+.nightmare .pax-wrap svg { filter: drop-shadow(0 0 7px rgba(255, 40, 40, .55)); }
+.nightmare .docs { background-color: #3e2a26; }
+.nightmare .doc { filter: saturate(.8) sepia(.12); }
+.nightmare .bubble { background: #f6e6e6; }
+.nightmare .rules-strip { background: #2a0f16; }
+@keyframes nmRain { from { background-position: 0 0; } to { background-position: -40px 120px; } }
+@keyframes nmFlicker { 0%, 61%, 64%, 66%, 100% { background-color: transparent; } 62%, 65% { background-color: rgba(0, 0, 0, .55); } 88% { background-color: rgba(0, 0, 0, .25); } }
+
+/* Papiers possédés */
+.docs.possessed { animation: possessed .55s steps(6); }
+@keyframes possessed { 0% { filter: none; } 20% { transform: translateX(-4px) skewX(4deg); filter: hue-rotate(80deg) contrast(1.6); } 40% { transform: translateX(5px); filter: invert(.15); } 60% { transform: translateX(-2px) skewX(-3deg); } 100% { transform: none; filter: none; } }
+.possessed-field { animation: possessedField 1.6s ease-out; border-radius: .3em; }
+@keyframes possessedField { 0%, 50% { box-shadow: 0 0 0 3px #e94f4f, 0 0 16px 4px rgba(233, 79, 79, .7); background: rgba(233, 79, 79, .15); } 100% { box-shadow: none; } }
+
+/* Résultats, boutique */
+.results.nm .res-stars i.on .ic { color: #e94f4f; }
+.results.nm .res-ribbon { background: #7a1020; }
+.cos-badge.nmb { background: #7a1020; color: #fff; }
+.cos-lock.moon { color: #c62828; }
+.nm-moons b .ic { color: #e94f4f; width: 18px; height: 18px; vertical-align: -3px; }

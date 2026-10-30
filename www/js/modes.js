@@ -258,6 +258,8 @@ G.ACHIEVEMENTS = [
   { id: 'mars', icon: 'trophy', name: 'Légende interplanétaire', desc: 'Vaincre le boss de Mars', gold: 10, test: () => (G.save.levels[109] || 0) > 0 },
   { id: 'collector', icon: 'album', name: 'Collectionneur', desc: "Compléter 3 collections de l'album", gold: 5, test: () => Object.keys(G.save.collections || {}).length >= 3 },
   { id: 'stylist', icon: 'brush', name: 'Styliste', desc: 'Posséder 5 objets de la boutique Style', gold: 3, test: () => (G.save.cos && G.save.cos.owned.length) >= 5 },
+  { id: 'insomnia', icon: 'moon', name: 'Insomniaque', desc: 'Terminer les 10 services d\'une ville en mode Cauchemar', gold: 5, test: () => G.CITIES.some((_, ci) => Array.from({ length: G.LEVELS_PER_CITY }, (__, i) => (G.save.nightmare.levels[ci * G.LEVELS_PER_CITY + i] || 0) > 0).every(Boolean)) },
+  { id: 'nightking', icon: 'skull', name: 'Roi des cauchemars', desc: 'Vaincre le boss de Mars en mode Cauchemar', gold: 15, test: () => (G.save.nightmare.levels[109] || 0) > 0 },
   { id: 'weekly', icon: 'trophy', name: 'Habitué du dimanche', desc: 'Réussir un défi de la semaine', gold: 2, test: () => !!(G.save.weekly && G.save.weekly.rewarded) },
 ];
 

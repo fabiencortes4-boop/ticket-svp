@@ -28,8 +28,8 @@ Game.start = (cfg) => {
     score: 0,
     combo: 0,
     bestCombo: 0,
-    rep: 3 + tools.badge,
-    maxRep: 3 + tools.badge,
+    rep: (cfg.nightmare ? 2 : 3) + tools.badge,
+    maxRep: (cfg.nightmare ? 2 : 3) + tools.badge,
     time: (cfg.time + tools.watch * 0.7) * G.timeScale(),
     timeLeft: 0,
     state: 'brief',
@@ -111,7 +111,7 @@ const later = (fn, ms) => {
 /* ---------- Écran et HUD ---------- */
 function renderScreen() {
   const { cfg } = st;
-  const root = G.el('div', `screen game-screen${cfg.dark ? ' dark' : ''}${cfg.sway ? ' sway' : ''}${st.blacklist ? ' blacklist' : ''}${cfg.o2 ? ' o2' : ''}`);
+  const root = G.el('div', `screen game-screen${cfg.dark ? ' dark' : ''}${cfg.sway ? ' sway' : ''}${st.blacklist ? ' blacklist' : ''}${cfg.o2 ? ' o2' : ''}${cfg.nightmare ? ' nightmare' : ''}`);
   root.style.setProperty('--line', cfg.city.lineColor);
   const dayRule = cfg.dayRule ? G.DAY_RULES.find((d) => d.id === cfg.dayRule) : null;
   root.innerHTML = `
@@ -406,7 +406,7 @@ function countdown() {
     if (!st) return;
     if (i >= seq.length) {
       c.remove();
-      G.Audio.play(st.cfg.boss ? 'boss' : st.cfg.city.music || 'game', { restart: true });
+      G.Audio.play(st.cfg.boss ? 'boss' : st.cfg.city.music || 'game', serviceMusic());
       st.state = 'idle';
       loop();
       nextPassenger();
@@ -451,7 +451,9 @@ function nextPassenger() {
   e.docs.classList.remove('uv-on', 'leave');
   e.docs.classList.add('enter');
   later(() => e.docs.classList.remove('enter'), 400);
+  if (st.cfg.nightmare && !p.special && !p.specialFixed && Math.random() < 0.4) p.line = G.rng(st.idx * 31 + 7).pick(G.NIGHTMARE_LINES);
   showBubble(p.line, p.special ? 'special' : '');
+  if (p.possess) later(() => possess(p), p.possess.at * 1000);
   if (p.special) G.toast(p.special === G.monthSpecial().id ? `${G.icon('star')} Le passager du mois ! Points doublés` : `${G.icon('star')} Passager spécial !`, 'gold');
   G.Audio.sfx('arrive');
   updateHud();
@@ -1118,7 +1120,7 @@ function gameOver() {
       st.paused = false;
       st.state = 'idle';
       updateHud();
-      G.Audio.play(st.cfg.boss ? 'boss' : st.cfg.city.music || 'game', { restart: true });
+      G.Audio.play(st.cfg.boss ? 'boss' : st.cfg.city.music || 'game', serviceMusic());
       proceed();
     } else finish(false);
   });
@@ -1149,6 +1151,7 @@ function finish(completed) {
   let coins = st.coins + stars * G.ECO.star + (cfg.boss && success ? G.ECO.boss : 0);
   if (cfg.daily && success) coins += G.ECO.daily;
   if (st.doubleCoins) coins *= 2;
+  if (cfg.nightmare) coins *= 2;
   const xp = Math.round(st.score / 10);
   const s = G.save;
   const prevRank = G.rankOf(s.xp).index;
@@ -1171,7 +1174,11 @@ function finish(completed) {
   if (cfg.daily) G.missionEvent('daily');
   if (stars === 3 && !cfg.daily) G.missionEvent('stars3');
   let weekly = null;
-  if (cfg.weekly) {
+  if (cfg.nightmare) {
+    const n = s.nightmare;
+    if (stars > (n.levels[cfg.g] || 0)) n.levels[cfg.g] = stars;
+    n.best[cfg.g] = Math.max(n.best[cfg.g] || 0, st.score);
+  } else if (cfg.weekly) {
     const w = s.weekly.week === cfg.week ? s.weekly : { week: cfg.week, best: 0, plays: 0, rewarded: false };
     w.plays++;
     const record = st.score > w.best;
@@ -1209,8 +1216,8 @@ function finish(completed) {
   G.Analytics.levelEnd(cfg, { success, stars, errors: st.stats.errors, score: st.score, acc });
   G.Cloud.flush();
   const unlocked = G.checkAchievements();
-  const story = firstClear && cfg.boss ? G.STORY.outro[cfg.city.id] : null;
-  const challengeCode = !cfg.daily && !cfg.event && !cfg.weekly ? G.makeChallengeCode(cfg.g, st.seed, st.score) : null;
+  const story = firstClear && cfg.boss && !cfg.nightmare ? G.STORY.outro[cfg.city.id] : null;
+  const challengeCode = !cfg.daily && !cfg.event && !cfg.weekly && !cfg.nightmare ? G.makeChallengeCode(cfg.g, st.seed, st.score) : null;
   const rushInfo = cfg.bossMech === 'rush' ? { done: correctCount, target: cfg.rushTarget } : null;
   const mystery = st.mystery ? { solved: st.mystery.solved } : null;
   G.UI.results({ cfg, success, stars, score: st.score, correct, total: st.results.length, acc, caught: st.caught, bestCombo: st.bestCombo, coins, xp, newAlbum: st.newAlbum.slice(), bestMoment: st.bestMoment, rankUp, firstClear, objectives, unlocked, story, challengeCode, challenge: cfg.challengeScore != null ? { target: cfg.challengeScore, beat: st.score > cfg.challengeScore } : null, eventReward, rushInfo, mystery, weekly });
@@ -1566,4 +1573,27 @@ function showMemory() {
   };
   G.$('[data-ok]', m.el).addEventListener('click', close);
   m.onDismiss = close;
+}
+
+/* Musique du service : en Cauchemar, plus lente et plus grave */
+function serviceMusic() {
+  return st.cfg.nightmare ? { restart: true, tempo: 0.82, pitch: 0.89 } : { restart: true };
+}
+
+/* ---------- Mode Cauchemar : papiers possédés ---------- */
+function possess(p) {
+  if (!st || curP() !== p || st.state !== 'inspect') return;
+  const docs = st.el.docs;
+  if (!p.possess.fake) {
+    p.ticket.dayOffset = p.possess.dayOffset;
+    const slot = G.$('[data-zoomable="ticket"]', docs);
+    if (slot) slot.innerHTML = G.renderTicket(p, st.cfg, st.ctx);
+    const f = G.$('[data-f="date"]', docs);
+    if (f) f.classList.add('possessed-field');
+  }
+  docs.classList.remove('possessed');
+  void docs.offsetWidth;
+  docs.classList.add('possessed');
+  G.Audio.sfx('tick');
+  G.vibrate(30);
 }

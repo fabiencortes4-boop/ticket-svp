@@ -3,7 +3,7 @@
 
 const G = (window.G = window.G || {});
 
-G.VERSION = '1.2.1';
+G.VERSION = '1.3.0';
 
 /* Filet de sécurité : si le jeu plante avant d'avoir affiché la carte (fichiers de deux versions mélangés
    dans le cache, par exemple), on vide le cache hors ligne et on recharge, une seule fois par session. */
@@ -118,6 +118,7 @@ G.defaultSave = () => ({
   items: { coffee: 0, magnifier: 0, double: 0 }, // bonus à usage unique
   collections: {}, // collections d'album récompensées
   weekly: { week: 0, best: 0, plays: 0, rewarded: false }, // défi de la semaine
+  nightmare: { on: false, levels: {}, best: {} }, // mode Cauchemar : lunes rouges par service
   tester: false, // mode testeur (lien ?testeur)
   testerGift: false,
 });

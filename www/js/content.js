@@ -243,3 +243,57 @@ G.EXTRA_LANDMARKS = {
   venise: `<path d="M8 74 Q60 52 112 74" fill="none" stroke="${K}" stroke-width="3"/><path d="M14 68 Q60 44 106 68 L106 74 L14 74Z" fill="#f2d3a0" stroke="${K}" stroke-width="3"/>${[0, 1, 2, 3].map((j) => `<path d="M${30 + j * 18} 68 l0 -8 a4 4 0 0 1 8 0 l0 8z" fill="#8b6b4a"/>`).join('')}<path d="M20 30 Q50 44 96 30 L102 22 L98 30" fill="#1b1b25" stroke="${K}" stroke-width="3" stroke-linejoin="round"/><path d="M64 34 L72 4" stroke="${K}" stroke-width="3"/><circle cx="56" cy="26" r="5" fill="#1b1b25"/><path d="M50 22 L62 22 L60 16 L52 16Z" fill="#ffd23f" stroke="${K}" stroke-width="1.5"/>`,
   mars: `<circle cx="46" cy="38" r="30" fill="#d9673e" stroke="${K}" stroke-width="3"/><circle cx="36" cy="28" r="6" fill="#b8502f"/><circle cx="58" cy="46" r="8" fill="#b8502f"/><circle cx="40" cy="52" r="4" fill="#b8502f"/><rect x="82" y="54" width="30" height="12" rx="3" fill="#eceaf2" stroke="${K}" stroke-width="2.5"/><circle cx="88" cy="70" r="5" fill="${K}"/><circle cx="106" cy="70" r="5" fill="${K}"/><path d="M104 54 L110 42 M110 42 L116 44" stroke="${K}" stroke-width="2.5"/>`,
 };
+
+/* ---------- Mode Cauchemar ----------
+   S'active avec l'interrupteur de la carte, une fois toutes les règles apprises (service 1 du Grand Express).
+   Toutes les règles d'un coup, −25 % de temps, 2 erreurs permises, fraudes subtiles, papiers possédés.
+   Chaque service rapporte des lunes rouges, qui débloquent des objets introuvables ailleurs. */
+G.NIGHTMARE_UNLOCK = 60;
+G.nightmareUnlocked = () => !!(G.save.tester || (G.save.levels[G.NIGHTMARE_UNLOCK] || 0) > 0);
+G.nightmareMoons = () => Object.values(G.save.nightmare.levels).reduce((a, b) => a + b, 0);
+G.nightmareConfig = (g) => {
+  const base = G.levelConfig(g);
+  const r = G.rng(6661 + g * 97);
+  const rules = G.RULES.map((x) => x.id).filter((x) => x !== 'day');
+  const mech = base.bossMech;
+  const mechTime = mech === 'dark' ? 2 : mech === 'sway' ? 1.5 : mech === 'memory' || mech === 'mustache' || mech === 'uvfake' ? 1 : 0;
+  const time = Math.max(4.8, (G.clamp(11.5 - g * 0.09, 6.4, 11.5) * base.city.timeMod + (rules.length - 4) * 0.3 + mechTime) * 0.75);
+  let count = 6 + Math.min(8, Math.floor(g / 3)) + (base.boss ? 4 : 0);
+  if (mech === 'rush') count = 40;
+  if (mech === 'oxygen') count = 22;
+  return Object.assign(base, {
+    nightmare: true,
+    subtle: true,
+    possessed: 0.2,
+    rules,
+    newRule: null,
+    dayRule: !base.boss && r.chance(0.4) ? r.pick(G.DAY_RULES).id : null,
+    time,
+    count,
+    fraudRate: Math.min(0.56, 0.38 + g * 0.005 + (base.boss ? 0.06 : 0)),
+    zoneReq: r.int(2, 4),
+    firstClass: base.boss || r.chance(0.75),
+    groupRate: mech === 'groups' ? 0.6 : 0.16,
+    rushTarget: mech === 'rush' ? 20 : 0,
+    label: base.boss ? `${base.city.name} · Boss cauchemar` : `${base.city.name} · Cauchemar ${base.i + 1}`,
+  });
+};
+G.NIGHTMARE_LINES = ['Je prends cette ligne… depuis toujours.', 'Vous aussi, vous entendez les rails chuchoter ?', "Il n'y a pas de prochaine station.", 'Mon ticket ? Il saigne un peu.', 'On se connaît, non ? On se connaît depuis longtemps.', 'Ne regardez pas derrière vous.', 'La rame ne s\'arrête jamais, ici.', 'Hé hé hé… contrôlez-moi…'];
+
+// Récompenses en lunes rouges
+G.COSMETICS.stamp.push({ id: 'eternal', name: 'Amende éternelle', desc: 'Un tampon rouge sang qui ne sèche jamais.', moons: 10 });
+G.COSMETICS.ink.push({ id: 'blood', name: 'Encre de cauchemar', desc: 'Rouge sang et vert spectral.', moons: 5 });
+G.COSMETICS.pet.push({ id: 'crow', name: 'Nevermore, le corbeau', desc: 'Il croasse à chaque fraudeur démasqué.', moons: 20 });
+G.COSMETICS.deco.push({ id: 'haunted', name: 'Wagon hanté', desc: 'Vitres fêlées, chaînes et yeux dans le noir.', moons: 40 });
+G.UNIFORMS.push({ id: 'phantom', name: 'Contrôleur fantôme', cost: 0, moons: 60, coat: '#4b5563', trim: '#a78bfa', hat: 'kepi', hatColor: '#374151' });
+
+PETS.crow = `<path d="M24 76 C20 56 34 44 52 46 C70 48 80 60 78 76Z" fill="#2b2b38" stroke="${K}" stroke-width="3"/><path d="M60 52 C78 46 92 56 90 66 C80 62 70 60 62 62Z" fill="#1b1b25" stroke="${K}" stroke-width="3" class="pet-wing"/><circle cx="40" cy="36" r="15" fill="#2b2b38" stroke="${K}" stroke-width="3"/><path d="M26 38 L10 42 L26 44Z" fill="#9aa5b1" stroke="${K}" stroke-width="2" stroke-linejoin="round"/><circle cx="38" cy="33" r="3.5" fill="#e94f4f"/><circle cx="38" cy="33" r="1.4" fill="#ffd23f"/><path d="M40 20 L44 12 L46 22 M34 22 L34 14 L40 22" fill="#2b2b38" stroke="${K}" stroke-width="2"/><path d="M42 80 L40 90 M56 80 L58 90" stroke="#9aa5b1" stroke-width="3" stroke-linecap="round"/>`;
+PET_SAY.crow = ['Croâ !', 'Croâ croâ !', 'Nevermore…'];
+DECOS.haunted = () => `<g stroke="#eef0f3" stroke-width="1.5" fill="none" opacity=".75"><path d="M60 46 L76 70 L68 84 L90 110 M76 70 L96 64"/><path d="M330 50 L318 78 L334 92 L320 120 M318 78 L300 74"/></g><g stroke="#8a8f99" stroke-width="4" fill="none">${[0, 1, 2, 3, 4, 5].map((i) => `<ellipse cx="${150 + i * 18}" cy="${40 + (i % 2) * 4}" rx="9" ry="5"/>`).join('')}</g>${[[40, 190], [360, 200], [210, 170]].map(([x, y], i) => `<g class="deco-blink" style="animation-delay:${i * 0.7}s"><ellipse cx="${x - 7}" cy="${y}" rx="4" ry="2.5" fill="#ff3b3b"/><ellipse cx="${x + 7}" cy="${y}" rx="4" ry="2.5" fill="#ff3b3b"/></g>`).join('')}<path d="M0 300 L0 250 Q40 230 70 260 T140 270 L140 300Z M400 300 L400 240 Q360 230 330 262 T260 272 L260 300Z" fill="#1b1b25" opacity=".45"/>`;
+
+// Les objets « lunes rouges » se débloquent tout seuls avec le nombre de lunes
+const baseCosOwned = G.cosOwned;
+G.cosOwned = (cat, id) => {
+  const it = G.cosItem(cat, id);
+  return it.moons ? G.nightmareMoons() >= it.moons : baseCosOwned(cat, id);
+};

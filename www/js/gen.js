@@ -211,11 +211,11 @@ G.makePassenger = (cfg, r, ctx) => {
         p.ticket = null;
         break;
       case 'date':
-        if (t.kind === 'pass') t.monthOffset = r.chance(0.8) ? -r.int(1, 3) : 1;
-        else t.dayOffset = r.chance(0.75) ? -r.int(1, 40) : r.int(1, 6);
+        if (t.kind === 'pass') t.monthOffset = cfg.subtle ? (r.chance(0.7) ? -1 : 1) : r.chance(0.8) ? -r.int(1, 3) : 1;
+        else t.dayOffset = cfg.subtle ? (r.chance(0.7) ? -1 : 1) : r.chance(0.75) ? -r.int(1, 40) : r.int(1, 6);
         break;
       case 'zone':
-        t.zoneMax = r.int(1, ctx.zoneReq - 1 || 1);
+        t.zoneMax = cfg.subtle ? ctx.zoneReq - 1 : r.int(1, ctx.zoneReq - 1 || 1);
         if (t.zoneMax >= ctx.zoneReq) t.zoneMax = ctx.zoneReq - 1;
         break;
       case 'photo': {
@@ -228,7 +228,7 @@ G.makePassenger = (cfg, r, ctx) => {
         t.kind = 'reduced';
         t.passName = null;
         t.reducedType = r.chance(0.5) ? 'etudiant' : 'senior';
-        p.birthYear = ctx.today.getFullYear() - (t.reducedType === 'etudiant' ? r.int(28, 74) : r.int(24, 61));
+        p.birthYear = ctx.today.getFullYear() - (t.reducedType === 'etudiant' ? (cfg.subtle ? r.int(26, 28) : r.int(28, 74)) : cfg.subtle ? r.int(62, 64) : r.int(24, 61));
         break;
       case 'stamp':
         if (t.kind === 'pass') {
@@ -240,10 +240,10 @@ G.makePassenger = (cfg, r, ctx) => {
       case 'name':
         t.kind = 'pass';
         t.reducedType = null;
-        t.passName = r.chance(0.6) && G.NAME_TWINS[name.first] ? fullName({ first: G.NAME_TWINS[name.first], last: name.last }) : fullName({ first: name.first, last: r.pick(G.LAST_NAMES.filter((x) => x !== name.last)) });
+        t.passName = (cfg.subtle || r.chance(0.6)) && G.NAME_TWINS[name.first] ? fullName({ first: G.NAME_TWINS[name.first], last: name.last }) : fullName({ first: name.first, last: r.pick(G.LAST_NAMES.filter((x) => x !== name.last)) });
         break;
       case 'expiry':
-        p.expiryOffset = -r.int(3, 900);
+        p.expiryOffset = cfg.subtle ? -r.int(1, 12) : -r.int(3, 900);
         break;
       case 'group':
         t.travelers = p.groupSize - r.int(1, Math.min(2, p.groupSize - 1));
@@ -630,6 +630,24 @@ G.buildQueue = (cfg, seed) => {
     extra.twin = twin;
   }
   if (cfg.bossMech === 'mystery') extra.mystery = G.buildMystery(queue, r);
+  if (cfg.possessed) {
+    // Mode Cauchemar : chez certains passagers, un détail du ticket change pendant qu'on le regarde
+    queue.forEach((p, i) => {
+      if (i === 0 || p.special || p.specialFixed || !p.ticket || p.ticket.kind === 'pass' || p.ticket.variant || !r.chance(cfg.possessed)) return;
+      const shift = r.chance(0.5) ? -1 : 1;
+      const changed = Object.assign({}, p, { ticket: Object.assign({}, p.ticket, { dayOffset: shift }) });
+      // Seulement si le changement de date rend vraiment le passager en faute (pas un jour « gratuit pour… »)
+      if (!p.fraud && r.chance(0.6) && G.evaluate(changed, cfg, ctx).fraud) {
+        p.possess = { at: r.int(9, 20) / 10, dayOffset: shift };
+        p.specialFixed = true;
+        p.fraud = true;
+        p.reason = `Papiers possédés : la date a changé sous tes yeux (${G.fmtDate(G.addDays(ctx.today, p.possess.dayOffset))}).`;
+        p.hint = 'date';
+      } else if (!p.fraud) {
+        p.possess = { at: r.int(9, 20) / 10, fake: true }; // simple frisson : rien ne change vraiment
+      }
+    });
+  }
   if (cfg.bossMech === 'blacklist') {
     // Liste noire : trois numéros volés, posés sur des tickets par ailleurs parfaits
     const list = [];
