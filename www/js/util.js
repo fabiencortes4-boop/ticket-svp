@@ -3,7 +3,7 @@
 
 const G = (window.G = window.G || {});
 
-G.VERSION = '1.3.0';
+G.VERSION = '1.3.1';
 
 /* Filet de sécurité : si le jeu plante avant d'avoir affiché la carte (fichiers de deux versions mélangés
    dans le cache, par exemple), on vide le cache hors ligne et on recharge, une seule fois par session. */
@@ -221,4 +221,5 @@ G.applyAccess = () => {
   h.classList.toggle('calm', !!s.calm);
 };
 /* Chrono plus lent (option d'accessibilité) */
-G.timeScale = () => (G.save && G.save.settings.slow ? 1.5 : 1);
+// Le mode Cauchemar ignore le chrono lent : ses 8 secondes sont la règle du jeu
+G.timeScale = () => (G.save && G.save.settings.slow && !G.nightmareActive ? 1.5 : 1);

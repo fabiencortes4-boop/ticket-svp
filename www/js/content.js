@@ -133,8 +133,9 @@ G.CONSUMABLES = [
   { id: 'magnifier', name: 'Loupe de détective', icon: 'loupe', price: 90, desc: '3 coups de loupe pendant un service : elle montre le détail suspect d\'un passager.' },
   { id: 'double', name: 'Ticket double gain', icon: 'coin', price: 70, desc: 'Toutes les pièces du service sont doublées.' },
 ];
-// Interdits là où le score se compare entre joueurs
+// Interdits là où le score se compare entre joueurs ; en Cauchemar, seul le double gain (qui n'aide pas à jouer) reste permis
 G.boostsAllowed = (cfg) => !cfg.daily && !cfg.weekly && cfg.challengeScore == null;
+G.boostAllowed = (cfg, id) => G.boostsAllowed(cfg) && (!cfg.nightmare || id === 'double');
 
 /* ---------- Personnages récurrents : ils reviennent de ville en ville ---------- */
 G.RECURRING = {
@@ -249,6 +250,7 @@ G.EXTRA_LANDMARKS = {
    Toutes les règles d'un coup, −25 % de temps, 2 erreurs permises, fraudes subtiles, papiers possédés.
    Chaque service rapporte des lunes rouges, qui débloquent des objets introuvables ailleurs. */
 G.NIGHTMARE_UNLOCK = 60;
+G.NIGHTMARE_MAX_TIME = 8; // secondes de réflexion au maximum par passager
 G.nightmareUnlocked = () => !!(G.save.tester || (G.save.levels[G.NIGHTMARE_UNLOCK] || 0) > 0);
 G.nightmareMoons = () => Object.values(G.save.nightmare.levels).reduce((a, b) => a + b, 0);
 G.nightmareConfig = (g) => {
@@ -256,8 +258,9 @@ G.nightmareConfig = (g) => {
   const r = G.rng(6661 + g * 97);
   const rules = G.RULES.map((x) => x.id).filter((x) => x !== 'day');
   const mech = base.bossMech;
-  const mechTime = mech === 'dark' ? 2 : mech === 'sway' ? 1.5 : mech === 'memory' || mech === 'mustache' || mech === 'uvfake' ? 1 : 0;
-  const time = Math.max(4.8, (G.clamp(11.5 - g * 0.09, 6.4, 11.5) * base.city.timeMod + (rules.length - 4) * 0.3 + mechTime) * 0.75);
+  // 8 secondes au plus, jusqu'à 6 secondes dans les dernières villes ; les boss gênants rendent un peu de temps, sans dépasser 8 s
+  const mechTime = mech === 'dark' ? 1.2 : mech === 'sway' ? 0.8 : mech === 'memory' || mech === 'mustache' || mech === 'uvfake' ? 0.5 : 0;
+  const time = Math.min(G.NIGHTMARE_MAX_TIME, G.clamp(8 - g * 0.02, 6, 8) + mechTime);
   let count = 6 + Math.min(8, Math.floor(g / 3)) + (base.boss ? 4 : 0);
   if (mech === 'rush') count = 40;
   if (mech === 'oxygen') count = 22;

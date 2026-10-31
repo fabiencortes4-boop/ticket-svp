@@ -5,7 +5,7 @@
    se recharge sur la nouvelle version complète. */
 'use strict';
 
-const CACHE = 'ticketsvp-1.3.0-da12e9904c';
+const CACHE = 'ticketsvp-1.3.1-8d1e86718d';
 const FILES = [
   './', 'index.html', 'manifest.webmanifest', 'privacy.html',
   'icon-512.png', 'icon-192.png', 'apple-touch-icon.png',

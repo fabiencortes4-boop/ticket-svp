@@ -371,8 +371,9 @@ function toggleNightmare() {
     UI.map();
     const m = G.modal(`<div class="nm-intro"><div class="nm-intro-icon">${G.icon('moon')}</div><h2>Bienvenue dans le cauchemar</h2>
       <ul class="obj-list">
-        <li class="obj"><i>${G.icon('clock')}</i><span>25 % de temps en moins par passager</span></li>
-        <li class="obj"><i>${G.icon('shield')}</i><span>2 erreurs permises au lieu de 3</span></li>
+        <li class="obj"><i>${G.icon('clock')}</i><span>8 secondes au plus par passager, 6 dans les dernières villes</span></li>
+        <li class="obj"><i>${G.icon('shield')}</i><span>2 erreurs permises, pas une de plus</span></li>
+        <li class="obj"><i>${G.icon('lock')}</i><span>Montre, badge, sifflet, café et loupe n'ont aucun effet. Seuls la lampe UV et le ticket double gain fonctionnent.</span></li>
         <li class="obj"><i>${G.icon('ticket')}</i><span>Toutes les règles dès le premier service, et des fraudes à un détail près</span></li>
         <li class="obj"><i>${G.icon('skull')}</i><span>Papiers possédés : une date peut changer sous tes yeux. Vérifie jusqu'au bout !</span></li>
         <li class="obj"><i>${G.icon('moon')}</i><span>Des lunes rouges à gagner, et des objets introuvables ailleurs. Pièces doublées.</span></li>

@@ -16,6 +16,7 @@ const multOf = (combo) => MULTS.find(([c]) => combo >= c)[1];
 Game.start = (cfg) => {
   Game.cleanup();
   const seed = cfg.seed != null ? cfg.seed : (Math.random() * 1e9) | 0;
+  G.nightmareActive = !!cfg.nightmare;
   const { queue, ctx, extra } = G.buildQueue(cfg, seed);
   G.Analytics.levelStart(cfg);
   if (cfg.endless) queue.forEach((q) => Object.assign(q, { cfg, ctx }));
@@ -28,15 +29,16 @@ Game.start = (cfg) => {
     score: 0,
     combo: 0,
     bestCombo: 0,
-    rep: (cfg.nightmare ? 2 : 3) + tools.badge,
-    maxRep: (cfg.nightmare ? 2 : 3) + tools.badge,
-    time: (cfg.time + tools.watch * 0.7) * G.timeScale(),
+    rep: cfg.nightmare ? 2 : 3 + tools.badge,
+    maxRep: cfg.nightmare ? 2 : 3 + tools.badge,
+    // Cauchemar : ni montre, ni badge, ni sifflet (améliorations achetées en boutique)
+    time: cfg.nightmare ? cfg.time : (cfg.time + tools.watch * 0.7) * G.timeScale(),
     timeLeft: 0,
     state: 'brief',
     paused: false,
     frozenUntil: 0,
     uvLeft: G.uvUses(tools.uv),
-    whistleLeft: tools.whistle,
+    whistleLeft: cfg.nightmare ? 0 : tools.whistle,
     hintsLeft: 2,
     appealUsed: false,
     caught: 0,
@@ -93,6 +95,7 @@ Game.start = (cfg) => {
 Game.debugState = () => st; // utilisé par les tests automatiques
 
 Game.cleanup = () => {
+  G.nightmareActive = false;
   if (!st) return;
   cancelAnimationFrame(st.raf);
   st.timers.forEach(clearTimeout);
@@ -252,9 +255,9 @@ function updateTools() {
   G.$('[data-uv]', r).innerHTML = uvLocked ? G.icon('lock') : st.uvLeft >= 99 ? '∞' : st.uvLeft;
   uv.disabled = !uvLocked && st.uvLeft <= 0;
   const whLocked = t.whistle === 0 && st.whistleLeft <= 0;
-  wh.classList.toggle('locked', whLocked);
-  G.$('[data-whistle]', r).innerHTML = whLocked ? G.icon('lock') : st.whistleLeft;
-  wh.disabled = !whLocked && st.whistleLeft <= 0;
+  wh.classList.toggle('locked', whLocked || !!st.cfg.nightmare);
+  G.$('[data-whistle]', r).innerHTML = st.cfg.nightmare ? G.icon('moon') : whLocked ? G.icon('lock') : st.whistleLeft;
+  wh.disabled = !!st.cfg.nightmare || (!whLocked && st.whistleLeft <= 0);
   G.$('[data-hint]', r).innerHTML = st.freeHints > 0 ? st.freeHints : st.hintsLeft > 0 ? G.icon('ad') : '0';
   hi.disabled = st.hintsLeft <= 0 && st.freeHints <= 0;
   hi.classList.toggle('tool-ad', st.freeHints <= 0);
@@ -1501,7 +1504,7 @@ function accuse(done) {
 /* ---------- Bonus à usage unique (choisis au briefing) ---------- */
 function boostPicker(cfg) {
   if (!G.boostsAllowed(cfg)) return '';
-  const owned = G.CONSUMABLES.filter((c) => (G.save.items[c.id] || 0) > 0);
+  const owned = G.CONSUMABLES.filter((c) => (G.save.items[c.id] || 0) > 0 && G.boostAllowed(cfg, c.id));
   if (!owned.length) return '';
   return `<div class="boost-pick"><h4>${G.icon('bolt')} Bonus pour ce service</h4><div class="boost-row">${owned.map((c) => `<button class="boost-btn" data-boost="${c.id}">${G.icon(c.icon)}<span>${c.name}</span><em>×${G.save.items[c.id]}</em></button>`).join('')}</div></div>`;
 }
@@ -1509,7 +1512,7 @@ function boostPicker(cfg) {
 function applyBoosts(ids) {
   if (!st || !ids.length) return;
   ids.forEach((id) => {
-    if (!(G.save.items[id] > 0)) return;
+    if (!(G.save.items[id] > 0) || !G.boostAllowed(st.cfg, id)) return;
     G.save.items[id]--;
     st.boosts.push(id);
     if (id === 'coffee') {
