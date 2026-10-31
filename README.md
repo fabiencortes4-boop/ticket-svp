@@ -1,11 +1,11 @@
 # Ticket SVP !
 
-Jeu mobile en français : tu es contrôleur de métro et tu as quelques secondes par passager pour démasquer les fraudeurs. Il est gratuit et se finance par la publicité, selon le document de conception.
+Jeu mobile en français, anglais, espagnol et allemand : tu es contrôleur de métro et tu as quelques secondes par passager pour démasquer les fraudeurs. Il est gratuit et se finance par la publicité, selon le document de conception.
 
-- **100 % original et libre de droits** : personnages, décors, icônes et musique sont générés par le code (SVG + synthé 8 bits WebAudio). Aucun fichier image ni son externe.
+- **100 % original et libre de droits** : personnages, décors, icônes et musique sont générés par le code (SVG + synthé 8 bits WebAudio). Aucun fichier image ni son externe. Les compagnies de transport sont inventées (Métropolitain, Crown Rail, Sakura Metro…).
 - **Sans dépendance** : HTML, CSS et JavaScript, prêt à être empaqueté en application Android avec Capacitor.
 
-## Contenu de la version 1.3
+## Contenu de la version 1.4
 
 | Élément | Détail |
 | --- | --- |
@@ -24,11 +24,13 @@ Jeu mobile en français : tu es contrôleur de métro et tu as quelques secondes
 | Rétention | Contrôle du jour identique pour tous avec partage du score en emojis, série de jours, coffre quotidien, album et 7 collections à compléter (récompenses exclusives), passager du mois (points doublés), 31 succès récompensés, rangs, 12 uniformes |
 | Boutique | Outils à améliorer ; bonus à usage unique (café, loupe, double gain) ; onglet Style : tampons de décision, encres, compagnons animés, décors de wagon ; éditions limitées pendant les événements |
 | Accessibilité | Taille du texte (3 niveaux), couleurs pour daltoniens (bleu et orange), chrono plus lent (+50 %), animations réduites |
+| Langues | Français, anglais, espagnol et allemand. La langue du téléphone est choisie au premier lancement, puis se change dans Réglages › Langue |
+| Nouveautés | Après une mise à jour, une fenêtre résume ce qui a changé (une seule fois par version) |
 | Mesures | Statistiques anonymes avec consentement au premier lancement : réussites et abandons par niveau, erreurs par type, pubs. Rapport de test copiable dans les Réglages |
 | Sauvegarde | Automatique sur l'appareil ; en ligne et privée pour chaque joueur quand le jeu est ouvert depuis un lien claude.ai par une personne connectée qui a le droit d'écrire ; code de sauvegarde à copier pour changer d'appareil |
 | Formats | Téléphone vertical et horizontal, tablette, pliables (Fold ouvert, format « passeport » quasi carré), ordinateur |
 | HUD | Score avec multiplicateur de combo, boucliers de réputation, progression du service, amendes encaissées, date et zones du jour, chrono par passager, règles actives, outils |
-| Audio | 7 musiques (titre, carte, service, boss, valse de Moscou, berceuse du train de nuit, air oriental du Grand Express), 2 jingles, une vingtaine de bruitages |
+| Audio | 11 musiques (titre, carte, service, boss, valse de Moscou, berceuse du train de nuit, air oriental du Grand Express, New York, Berlin, Venise, Mars), 2 jingles, une vingtaine de bruitages. Son façon console 8 bits : triangle en escalier 4 bits, bruit LFSR pour la batterie, vibrato, écho, léger crénelage |
 | Monétisation | Pubs récompensées (faire appel, doubler les gains, caméra, renfort, 2e coffre, ticket d'or), interstitielles plafonnées, achats « Sans pub » et tickets d'or |
 
 Dans l'application Android, les **vraies pubs AdMob** et le formulaire de consentement RGPD de Google sont branchés (identifiants de test par défaut). Dans un navigateur, des pubs de démonstration s'affichent. Les achats sont encore **simulés**. Le guide complet de publication est dans [`store/PUBLIER.md`](store/PUBLIER.md).
@@ -78,6 +80,8 @@ www/
   css/style.css      Mise en page, HUD, animations, accessibilité
   css/fonts.css      Polices locales (le jeu marche hors ligne)
   fonts/             Lilita One, Nunito, Press Start 2P (licence OFL)
+  js/i18n.js         Traduction : détection de la langue, remplacement des textes à l'écran
+  js/lang-en.js      Dictionnaires anglais, espagnol, allemand (lang-es.js, lang-de.js) générés depuis le français
   js/util.js         Hasard déterministe, dates, sauvegarde locale, accessibilité
   js/analytics.js    Statistiques anonymes, rapport de test, envoi Firebase si accepté
   js/cloud.js        Sauvegarde en ligne (lien claude.ai) et code de sauvegarde entre appareils
@@ -97,7 +101,8 @@ www/
   js/main.js         Démarrage
 android/               Projet Android natif (Capacitor) : icônes, écran de démarrage, AdMob, signature de test
 tools/store-assets.js  Génère l'icône, la bannière et les captures Play Store
-store/                 Visuels Play Store et guide de publication (PUBLIER.md)
+store/                 Visuels Play Store (français ; en/, es/, de/ pour les autres langues) et guide de publication (PUBLIER.md)
+tests/                 Tests automatiques dans un vrai navigateur (Playwright)
 ```
 
 `G.evaluate` (dans `gen.js`) est la seule source de vérité pour décider si un passager fraude. Le générateur l'appelle sur chaque passager, et la même fonction explique l'erreur au joueur.
@@ -119,11 +124,22 @@ npm run android:open    # Android Studio > Build > Generate Signed App Bundle
 - `www/js/ads.js` : `G.AD_CONFIG` contient les identifiants AdMob (ceux de test de Google par défaut, à remplacer). `G.Ads.showRewarded(placement)` renvoie `true` quand AdMob confirme la récompense. `G.Ads.maybeInterstitial(levelIndex)` applique les plafonds : jamais avant le niveau 8, au plus une toutes les 3 minutes et tous les 2 services, jamais juste après une pub récompensée, aucune si « Sans pub » a été acheté.
 - `www/js/analytics.js` : tout est compté sur l'appareil. L'envoi vers Firebase Analytics (ou vers `ENDPOINT`) n'a lieu que si le joueur a accepté.
 
+## Tests automatiques
+
+```bash
+npm install
+npx playwright install chromium   # une fois
+npm test                          # tous les tests ; ./tests/run.sh cauchemar pour une partie
+```
+
+Chaque test ouvre le jeu dans Chromium, joue des services et vérifie qu'aucune erreur n'apparaît. Détails dans [`tests/README.md`](tests/README.md).
+
 ## Régénérer les visuels du Store
 
 ```bash
 python3 -m http.server 8765 --directory www &
-node tools/store-assets.js     # nécessite Playwright
+node tools/store-assets.js                 # français, dans store/
+STORE_LANG=en node tools/store-assets.js   # anglais, dans store/en/ (es, de de même)
 ```
 
 ## Pistes pour la suite
@@ -132,4 +148,4 @@ node tools/store-assets.js     # nécessite Playwright
 - 5 à 10 nouveaux passagers spéciaux par mois.
 - Classements en ligne pour le défi du jour et la Ligne infinie (Google Play Jeux) : le record est aujourd'hui seulement local.
 - Achats réels avec Google Play Billing.
-- Davantage d'événements saisonniers (Pâques, été, nouvel an lunaire).
+- Faire relire les traductions par des locuteurs natifs ; traduire la politique de confidentialité.

@@ -300,3 +300,28 @@ G.cosOwned = (cat, id) => {
   const it = G.cosItem(cat, id);
   return it.moons ? G.nightmareMoons() >= it.moons : baseCosOwned(cat, id);
 };
+
+/* ---------- Nouveautés de chaque version (écran affiché une fois après la mise à jour) ---------- */
+G.WHATS_NEW = [
+  { v: '1.4.0', title: 'Version 1.4 : le jeu parle votre langue', items: [
+    ['talk', 'Le jeu est disponible en anglais, espagnol et allemand (Réglages › Langue).'],
+    ['music', 'Musiques retravaillées : un vrai son de console 8 bits, mêmes mélodies.'],
+    ['ticket', 'Nouveaux noms pour les compagnies de transport des tickets.'],
+  ] },
+  { v: '1.3.0', title: 'Version 1.3 : le mode Cauchemar', items: [
+    ['moon', "Un interrupteur sur la carte, une fois toutes les règles apprises. 8 secondes par passager, 2 erreurs, aucun bonus."],
+    ['skull', 'Papiers possédés : une date peut changer sous tes yeux.'],
+    ['star', 'Lunes rouges et objets exclusifs : corbeau, wagon hanté, uniforme fantôme…'],
+  ] },
+  { v: '1.2.0', title: 'Version 1.2 : le tour du monde', items: [
+    ['map', 'New York, Berlin, Venise et Mars : 40 services et 4 boss inédits.'],
+    ['shop', 'Boutique Style : tampons, encres, compagnons, décors de wagon. Et des bonus à usage unique.'],
+    ['album', 'Collections d\'album, défi de la semaine, un événement presque chaque mois.'],
+  ] },
+];
+G.versionNewer = (a, b) => {
+  const pa = String(a).split('.').map(Number);
+  const pb = String(b).split('.').map(Number);
+  for (let i = 0; i < 3; i++) if ((pa[i] || 0) !== (pb[i] || 0)) return (pa[i] || 0) > (pb[i] || 0);
+  return false;
+};

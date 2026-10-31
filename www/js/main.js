@@ -3,6 +3,8 @@
 
 (function boot() {
   G.save = G.load();
+  G.i18nData();
+  G.i18nStart();
   G.Tester.init();
   G.Install.init();
   G.applyAccess();

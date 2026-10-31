@@ -1,8 +1,13 @@
 /* Génère l'icône et les visuels Play Store à partir des graphismes du jeu.
-   Usage : servir www/ sur http://localhost:8765 puis `node tools/store-assets.js` (Playwright requis). */
+   Usage : servir www/ sur http://localhost:8765 puis `node tools/store-assets.js` (Playwright requis).
+   STORE_LANG=en|es|de génère les visuels d'une autre langue dans store/<langue>/. */
 const { chromium } = require('playwright');
 const path = require('path');
-const OUT = path.join(__dirname, '..', 'store');
+const fs = require('fs');
+const LANG = process.env.STORE_LANG || 'fr';
+const TAGS = { fr: 'Démasque les fraudeurs<br>du métro !', en: 'Catch the metro<br>fare dodgers!', es: '¡Desenmascara a los<br>colados del metro!', de: 'Entlarve die<br>Schwarzfahrer!' };
+const OUT = LANG === 'fr' ? path.join(__dirname, '..', 'store') : path.join(__dirname, '..', 'store', LANG);
+fs.mkdirSync(OUT, { recursive: true });
 const URL = process.env.GAME_URL || 'http://localhost:8765/index.html';
 
 async function render(page, w, h, html, file) {
@@ -17,6 +22,7 @@ async function render(page, w, h, html, file) {
 (async () => {
   const b = await chromium.launch();
   const page = await b.newPage({ deviceScaleFactor: 1 });
+  await page.addInitScript((l) => localStorage.setItem('ticketsvp.save.v1', JSON.stringify({ lang: l, settings: { consentAsked: true } })), LANG);
   await page.goto(URL);
   await page.waitForTimeout(800);
   await page.addStyleTag({ content: '#cap .pax-body{animation:none!important} #cap *{animation:none!important}' });
@@ -30,20 +36,20 @@ async function render(page, w, h, html, file) {
   await render(page, 512, 512, icon, path.join(OUT, 'icon-512.png'));
   await render(page, 512, 512, icon, path.join(__dirname, '..', 'www', 'icon-512.png'));
 
-  const feature = await page.evaluate(() => {
+  const feature = await page.evaluate((TAG) => {
     const face = (look, x, size, rot) => `<div style="position:absolute;left:${x}px;bottom:-10px;width:${size}px;height:${size * 1.23}px;transform:rotate(${rot}deg)">${G.drawPerson(look, {})}</div>`;
     const sp = (id) => { const s = G.SPECIALS.find((x) => x.id === id); return G.makeSpecial(s, G.levelConfig(35), G.rng(7), { today: G.today(), zoneReq: 3 }).look; };
     return `<div style="width:1024px;height:500px;position:relative;overflow:hidden;background:repeating-linear-gradient(45deg,#182447 0 22px,#1d2c57 22px 44px)">
       <div style="position:absolute;left:40px;top:70px;width:470px">${G.drawLogo()}</div>
-      <div style="position:absolute;left:60px;top:318px;width:440px;font:400 30px/1.15 'Lilita One',sans-serif;color:#fff">Démasque les fraudeurs<br>du métro !</div>
+      <div style="position:absolute;left:60px;top:318px;width:440px;font:400 30px/1.15 'Lilita One',sans-serif;color:#fff">${TAG}</div>
       ${face(sp('dogs'), 520, 230, -6)}${face(G.conductorLook('classic'), 650, 300, 0)}${face(sp('mime'), 830, 220, 6)}
     </div>`;
-  });
+  }, TAGS[LANG]);
   await render(page, 1024, 500, feature, path.join(OUT, 'feature-graphic-1024x500.png'));
 
   // Captures d'écran 1080×1920 (9:16) pour la fiche Play Store
   const shots = await b.newPage({ viewport: { width: 360, height: 640 }, deviceScaleFactor: 3 });
-  const save = { settings: { music: true, sfx: true, vibe: true, consentAsked: true }, v: 1, coins: 860, gold: 24, xp: 2300, levels: {}, tools: { watch: 1, uv: 2, whistle: 1, badge: 0 }, owned: ['classic'], uniform: 'classic', album: {}, tutorialDone: true };
+  const save = { lang: LANG, settings: { music: true, sfx: true, vibe: true, consentAsked: true }, v: 1, coins: 860, gold: 24, xp: 2300, levels: {}, tools: { watch: 1, uv: 2, whistle: 1, badge: 0 }, owned: ['classic'], uniform: 'classic', album: {}, tutorialDone: true };
   for (let i = 0; i < 16; i++) save.levels[i] = 3 - (i % 2);
   ['mime', 'dogs', 'ghost', 'tourist', 'timetraveler', 'grandma', 'pirate', 'baby', 'vampire', 'robot', 'alien'].forEach((k) => { save.album[k] = 1; });
   await shots.addInitScript((s) => localStorage.setItem('ticketsvp.save.v1', s), JSON.stringify(save));

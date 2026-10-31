@@ -181,11 +181,65 @@ A.init = () => {
   A.master.connect(comp).connect(c.destination);
   A.music = c.createGain();
   A.sfxBus = c.createGain();
-  A.music.connect(A.master);
+  A.panners = {};
+  // Sortie de la musique façon console 8 bits : filtres d'origine (passe-haut 90 Hz, passe-bas 14 kHz)
+  // et un convertisseur 7 bits qui donne le grain caractéristique
+  const hp = c.createBiquadFilter();
+  hp.type = 'highpass';
+  hp.frequency.value = 90;
+  const lp = c.createBiquadFilter();
+  lp.type = 'lowpass';
+  lp.frequency.value = 14000;
+  const crush = c.createWaveShaper();
+  const curve = new Float32Array(1024);
+  for (let i = 0; i < curve.length; i++) {
+    const x = (i / (curve.length - 1)) * 2 - 1;
+    curve[i] = Math.round(Math.tanh(x * 1.1) * 63) / 63;
+  }
+  crush.curve = curve;
+  A.music.connect(hp).connect(crush).connect(lp).connect(A.master);
   A.sfxBus.connect(A.master);
+  // Écho discret sur la mélodie (procédé courant des compositeurs de chiptune)
+  A.echoIn = c.createGain();
+  A.echoIn.gain.value = 0.22;
+  const delay = c.createDelay(1);
+  delay.delayTime.value = 0.19;
+  const fb = c.createGain();
+  fb.gain.value = 0.28;
+  const fbLp = c.createBiquadFilter();
+  fbLp.type = 'lowpass';
+  fbLp.frequency.value = 3200;
+  A.echoIn.connect(delay).connect(fbLp).connect(fb).connect(delay);
+  fbLp.connect(A.music);
   A.waves = {};
+  // Triangle 4 bits en escalier (32 paliers), comme le canal triangle de la NES
+  {
+    const steps = 32;
+    const samples = 1024;
+    const sig = new Float32Array(samples);
+    for (let i = 0; i < samples; i++) {
+      const ph = Math.floor((i / samples) * steps);
+      const lvl = ph < 16 ? 15 - ph : ph - 16;
+      sig[i] = lvl / 7.5 - 1;
+    }
+    const n = 96;
+    const real = new Float32Array(n);
+    const imag = new Float32Array(n);
+    for (let k = 1; k < n; k++) {
+      let re = 0;
+      let im = 0;
+      for (let i = 0; i < samples; i++) {
+        const a = (2 * Math.PI * k * i) / samples;
+        re += sig[i] * Math.cos(a);
+        im += sig[i] * Math.sin(a);
+      }
+      real[k] = (2 * re) / samples;
+      imag[k] = (2 * im) / samples;
+    }
+    A.waves.tri4 = c.createPeriodicWave(real, imag);
+  }
   for (const [name, duty] of [['pulse12', 0.125], ['pulse25', 0.25], ['pulse50', 0.5]]) {
-    const n = 48;
+    const n = 160;
     const real = new Float32Array(n);
     const imag = new Float32Array(n);
     for (let k = 1; k < n; k++) real[k] = (2 / (k * Math.PI)) * Math.sin(k * Math.PI * duty);
@@ -195,6 +249,25 @@ A.init = () => {
   A.noise = c.createBuffer(1, len, c.sampleRate);
   const d = A.noise.getChannelData(0);
   for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+  // Bruit de la NES : registre à décalage 15 bits, mode long (souffle) et mode court (métallique)
+  const lfsr = (short) => {
+    const buf = c.createBuffer(1, len, c.sampleRate);
+    const out = buf.getChannelData(0);
+    let reg = 1;
+    const hold = Math.max(1, Math.round(c.sampleRate / 32000));
+    let v = 1;
+    for (let i = 0; i < len; i++) {
+      if (i % hold === 0) {
+        const bit = (reg & 1) ^ ((reg >> (short ? 6 : 1)) & 1);
+        reg = (reg >> 1) | (bit << 14);
+        v = reg & 1 ? 1 : -1;
+      }
+      out[i] = v;
+    }
+    return buf;
+  };
+  A.noiseLong = lfsr(false);
+  A.noiseShort = lfsr(true);
   A.compiled = {};
   for (const k of Object.keys(A.SONGS)) A.compiled[k] = compile(A.SONGS[k]);
   A.ready = true;
@@ -236,6 +309,74 @@ function voice(wave, freq, t, dur, vol, bus) {
   o.start(t);
   o.stop(t + dur + 0.02);
   return o;
+}
+
+/* Voix de musique : enveloppe et vibrato selon le rôle (mélodie, basse, accompagnement) */
+function musicVoice(role, wave, freq, t, dur, vol) {
+  const c = A.ctx;
+  const o = c.createOscillator();
+  const g = c.createGain();
+  if (wave === 'tri') o.setPeriodicWave(A.waves.tri4);
+  else if (A.waves[wave]) o.setPeriodicWave(A.waves[wave]);
+  else o.type = wave === 'sine' ? 'sine' : 'square';
+  o.frequency.setValueAtTime(freq, t);
+  g.gain.setValueAtTime(0, t);
+  if (role === 'bass') {
+    // Le triangle de la NES n'a pas de réglage de volume : tout ou rien, coupé net
+    g.gain.linearRampToValueAtTime(vol * 1.05, t + 0.004);
+    g.gain.setValueAtTime(vol * 1.05, t + Math.max(0.01, dur - 0.012));
+    g.gain.linearRampToValueAtTime(0, t + dur);
+  } else if (role === 'arp') {
+    // Pincé : attaque nette puis décroissance rapide
+    g.gain.linearRampToValueAtTime(vol * 1.3, t + 0.004);
+    g.gain.exponentialRampToValueAtTime(Math.max(0.0005, vol * 0.35), t + Math.min(dur, 0.09));
+    g.gain.linearRampToValueAtTime(0, t + dur);
+  } else {
+    // Mélodie : attaque, légère décroissance, tenue, vibrato retardé sur les notes longues
+    g.gain.linearRampToValueAtTime(vol * 1.15, t + 0.005);
+    g.gain.linearRampToValueAtTime(vol * 0.8, t + Math.min(dur * 0.5, 0.12));
+    g.gain.setValueAtTime(vol * 0.8, t + Math.max(0.02, dur - 0.025));
+    g.gain.linearRampToValueAtTime(0, t + dur);
+    if (dur > 0.28) {
+      const lfo = c.createOscillator();
+      const depth = c.createGain();
+      lfo.frequency.value = 5.6;
+      depth.gain.setValueAtTime(0, t);
+      depth.gain.linearRampToValueAtTime(freq * 0.012, t + 0.22);
+      lfo.connect(depth).connect(o.frequency);
+      lfo.start(t);
+      lfo.stop(t + dur + 0.02);
+    }
+  }
+  let out = o.connect(g);
+  if (c.createStereoPanner) {
+    const key = role;
+    if (!A.panners[key]) {
+      A.panners[key] = c.createStereoPanner();
+      A.panners[key].pan.value = role === 'arp' ? -0.35 : role === 'harmony' ? 0.35 : 0;
+      A.panners[key].connect(A.music);
+    }
+    out.connect(A.panners[key]);
+  } else out.connect(A.music);
+  if (role === 'lead') g.connect(A.echoIn);
+  o.start(t);
+  o.stop(t + dur + 0.03);
+}
+
+function lfsrHit(t, dur, vol, short, rate, hpFreq) {
+  const c = A.ctx;
+  const s = c.createBufferSource();
+  s.buffer = short ? A.noiseShort : A.noiseLong;
+  s.playbackRate.value = rate;
+  const f = c.createBiquadFilter();
+  f.type = 'highpass';
+  f.frequency.value = hpFreq;
+  const g = c.createGain();
+  g.gain.setValueAtTime(vol, t);
+  g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+  s.connect(f).connect(g).connect(A.music);
+  s.start(t, Math.random() * 0.4);
+  s.stop(t + dur + 0.02);
 }
 
 function noiseHit(t, dur, vol, hp, bus, lp) {
@@ -281,17 +422,33 @@ function stepDur(song) {
 
 function scheduleStep(song, step, t) {
   const sd = stepDur(song);
-  for (const tr of song.tracks) {
+  song.tracks.forEach((tr, i) => {
     const ev = tr.events[step];
-    if (ev) voice(tr.wave, freqOf(ev.midi) * A.pitchMul, t, ev.len * sd * 0.92, tr.vol, A.music);
-  }
+    if (!ev) return;
+    const role = tr.wave === 'tri' ? 'bass' : i === 0 ? 'lead' : tr.vol <= 0.06 ? 'arp' : 'harmony';
+    musicVoice(role, tr.wave, freqOf(ev.midi) * A.pitchMul, t, ev.len * sd * 0.92, tr.vol);
+  });
   if (song.drums) {
     const ch = song.drums[step % song.drums.length];
-    if (ch === 'k') kick(t, A.music, 0.55);
-    else if (ch === 's') {
-      noiseHit(t, 0.13, 0.22, 1200, A.music);
-      voice('tri', 190, t, 0.05, 0.18, A.music);
-    } else if (ch === 'h') noiseHit(t, 0.035, 0.07, 7000, A.music);
+    if (ch === 'k') {
+      // Grosse caisse : chute de hauteur sur le triangle + souffle court
+      const c = A.ctx;
+      const o = c.createOscillator();
+      const g = c.createGain();
+      o.setPeriodicWave(A.waves.tri4);
+      o.frequency.setValueAtTime(190, t);
+      o.frequency.exponentialRampToValueAtTime(45, t + 0.11);
+      g.gain.setValueAtTime(0.62, t);
+      g.gain.setValueAtTime(0.62, t + 0.09);
+      g.gain.linearRampToValueAtTime(0, t + 0.13);
+      o.connect(g).connect(A.music);
+      o.start(t);
+      o.stop(t + 0.15);
+      lfsrHit(t, 0.03, 0.12, false, 0.5, 200);
+    } else if (ch === 's') {
+      lfsrHit(t, 0.16, 0.24, false, 0.8, 900);
+      musicVoice('bass', 'tri', 200 * A.pitchMul, t, 0.05, 0.16);
+    } else if (ch === 'h') lfsrHit(t, 0.04, 0.08, true, 1.6, 6000);
   }
 }
 
@@ -596,3 +753,6 @@ A.SONGS.mars = {
   ],
   drums: 'k.......s.....h.',
 };
+
+// Accès pour les tests automatiques (rendu hors temps réel d'un morceau)
+A._debug = { scheduleStep, stepDur };

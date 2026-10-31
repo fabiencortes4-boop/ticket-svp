@@ -118,9 +118,29 @@ UI.title = () => {
     G.Audio.sfx('door');
     G.Audio.play('map');
     UI.map();
-    maybeLoginChest();
+    if (!whatsNew()) maybeLoginChest();
   });
 };
+
+/* Nouveautés : affichées une fois après chaque mise à jour (pas pour un tout nouveau joueur) */
+function whatsNew() {
+  const s = G.save;
+  const seen = s.seenVersion;
+  s.seenVersion = G.VERSION;
+  G.persist();
+  const veteran = Object.keys(s.levels).length > 0;
+  if (!veteran || seen === G.VERSION) return false;
+  const news = G.WHATS_NEW.filter((n) => !seen || G.versionNewer(n.v, seen)).slice(0, 2);
+  if (!news.length) return false;
+  const m = G.modal(`<div class="whats-new"><div class="wn-badge">${G.icon('star')} Version ${G.VERSION}</div><h2>Quoi de neuf ?</h2>
+    ${news.map((n) => `<div class="wn-block"><h3>${n.title}</h3><ul>${n.items.map((it) => `<li>${G.icon(it[0])}<span>${it[1]}</span></li>`).join('')}</ul></div>`).join('')}
+    <button class="btn btn-primary" data-ok>C'est parti !</button></div>`, { cls: 'modal-wn' });
+  G.$('[data-ok]', m.el).addEventListener('click', () => {
+    m.close();
+    maybeLoginChest();
+  });
+  return true;
+}
 
 function skylineSvg() {
   // Silhouette de ville : immeubles, une tour en treillis, fenêtres allumées
@@ -326,6 +346,7 @@ function codeModal() {
 
 function copyText(txt, preview) {
   G.Audio.sfx('click');
+  txt = txt.split('\n').map((l) => G.tr(l)).join('\n');
   const fallback = () => {
     if (preview) {
       preview.hidden = false;
@@ -823,6 +844,7 @@ UI.settings = () => {
         <button class="set-row" data-tg="music">${G.icon('music')}<span>Musique 8 bits</span><i class="sw ${s.settings.music ? 'on' : ''}"></i></button>
         <button class="set-row" data-tg="sfx">${G.icon('sound')}<span>Effets sonores</span><i class="sw ${s.settings.sfx ? 'on' : ''}"></i></button>
         <button class="set-row" data-tg="vibe">${G.icon('vibe')}<span>Vibrations</span><i class="sw ${s.settings.vibe ? 'on' : ''}"></i></button>
+        <button class="set-row" data-lang>${G.icon('talk')}<span>Langue</span><em class="set-val" data-notr>${G.LANGS[G.lang]}</em></button>
       </div>
       <h3 class="set-h">Accessibilité</h3>
       <div class="set-group">
@@ -883,6 +905,15 @@ UI.settings = () => {
       G.applyAccess();
       G.Audio.sfx('click');
       G.$('.set-val', ts).textContent = TEXT_SIZES[s.settings.textSize];
+    }
+    if (ev.target.closest('[data-lang]')) {
+      G.Audio.sfx('click');
+      const m = G.modal(`<div class="lang-pick"><h2>${G.icon('talk')} Langue</h2><div class="lang-list" data-notr>${Object.entries(G.LANGS).map(([code, name]) => `<button class="btn ${code === G.lang ? 'btn-primary' : 'btn-ghost'}" data-setlang="${code}">${name}</button>`).join('')}</div></div>`, { cls: 'modal-lang' });
+      G.$$('[data-setlang]', m.el).forEach((b) => b.addEventListener('click', () => {
+        s.lang = b.dataset.setlang;
+        G.persist();
+        location.reload();
+      }));
     }
     if (ev.target.closest('[data-install]')) G.Install.prompt();
     if (ev.target.closest('[data-tester-off]')) {

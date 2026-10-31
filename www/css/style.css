@@ -1327,3 +1327,16 @@ html.calm *, html.calm *::before, html.calm *::after { animation-duration: .01ms
 .cos-badge.nmb { background: #7a1020; color: #fff; }
 .cos-lock.moon { color: #c62828; }
 .nm-moons b .ic { color: #e94f4f; width: 18px; height: 18px; vertical-align: -3px; }
+
+/* ---------- Nouveautés ---------- */
+.whats-new { text-align: center; }
+.wn-badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 12px; border-radius: 99px; background: var(--violet); color: #fff; font-size: 12px; font-weight: 900; }
+.wn-badge .ic { width: 13px; height: 13px; }
+.wn-block { text-align: left; margin: 10px 0; padding: 10px 12px; border-radius: 14px; background: var(--paper-2); border: 2px solid var(--ink); }
+.wn-block h3 { margin: 0 0 6px; font-family: var(--f-display); font-weight: 400; font-size: 17px; }
+.wn-block ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.wn-block li { display: flex; gap: 8px; align-items: flex-start; font-size: 14px; }
+.wn-block li .ic { width: 20px; height: 20px; flex: none; color: var(--violet-2); }
+.lang-pick h2 { display: flex; align-items: center; justify-content: center; gap: 8px; }
+.lang-pick h2 .ic { width: 26px; height: 26px; }
+.lang-list { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }

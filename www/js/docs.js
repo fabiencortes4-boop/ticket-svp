@@ -13,7 +13,7 @@ function stampSvg(kind, city, time, dateTxt) {
   return `<svg viewBox="0 0 120 64" class="stamp stamp-real" aria-hidden="true">
     <rect x="5" y="6" width="110" height="52" rx="8" fill="none" stroke="${ink}" stroke-width="3"/>
     <rect x="10" y="11" width="100" height="42" rx="5" fill="none" stroke="${ink}" stroke-width="1.2" stroke-dasharray="3 2"/>
-    <text x="60" y="27" text-anchor="middle" class="stamp-txt" fill="${ink}">${city.company}</text>
+    <text x="60" y="27" text-anchor="middle" class="stamp-txt" fill="${ink}"${city.company.length > 12 ? ' textLength="94" lengthAdjust="spacingAndGlyphs"' : ''}>${city.company}</text>
     <text x="60" y="45" text-anchor="middle" class="stamp-txt2" fill="${ink}">${dateTxt} · ${time}</text>
     <g class="uv-mark"><circle cx="102" cy="16" r="7" fill="none" stroke="#5ff7ff" stroke-width="2"/><path d="M98 16 l3 3 5 -6" stroke="#5ff7ff" stroke-width="2" fill="none"/></g></svg>`;
 }
