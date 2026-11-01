@@ -9,15 +9,35 @@ G.showScreen = (el) => {
   if (G.Install && G.Install.pendingReload && !el.classList.contains('game-screen')) return location.reload();
   if (el.classList.contains('map-screen')) G.healthy = true;
   const host = G.$('#screens');
-  const old = host.firstElementChild;
+  // Tous les écrans déjà là sortent, pas seulement le premier : deux ouvertures rapprochées
+  // (double appui, écran ouvert pendant une transition) laissaient sinon des menus empilés pour toujours
+  const olds = [...host.children].filter((c) => c !== el);
+  const nmNew = [...el.classList].find((c) => c.endsWith('-screen'));
+  const cur = olds.filter((o) => !o.classList.contains('screen-out')).pop();
+  // Même écran redessiné (achat, onglet, réglage) : remplacement net, sans fondu, en gardant le défilement
+  if (cur && nmNew && cur.classList.contains(nmNew)) {
+    const pos = [...cur.querySelectorAll('*')].filter((n) => n.scrollTop > 0).map((n) => [n.className, [...cur.getElementsByClassName(n.className)].indexOf(n), n.scrollTop]);
+    olds.forEach((o) => o.remove());
+    host.appendChild(el);
+    pos.forEach(([c, i, top]) => {
+      const n = typeof c === 'string' && c ? el.getElementsByClassName(c)[i] : null;
+      if (n) n.scrollTop = top;
+    });
+    G.$$('.modal').forEach((m) => m.remove());
+    return;
+  }
   host.appendChild(el);
+  el.classList.remove('screen-out');
   el.classList.add('screen-in');
   const nm = [...el.classList].find((c) => c.endsWith('-screen'));
   if (nm) G.Analytics.screen(nm.replace('-screen', ''));
-  if (old) {
+  olds.forEach((old) => {
+    if (old.classList.contains('screen-out')) return; // déjà en train de partir
     old.classList.add('screen-out');
+    old.setAttribute('aria-hidden', 'true');
+    old.inert = true;
     setTimeout(() => old.remove(), 220);
-  }
+  });
   G.$$('.modal').forEach((m) => m.remove());
 };
 

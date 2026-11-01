@@ -73,7 +73,8 @@ button:focus-visible, summary:focus-visible { outline: 3px solid var(--yellow); 
 #screens { position: absolute; inset: 0; }
 .screen { position: absolute; inset: 0; display: flex; flex-direction: column; overflow: hidden; }
 .screen-in { animation: screenIn .24s ease-out both; }
-.screen-out { animation: screenOut .2s ease-in both; pointer-events: none; }
+.screen.screen-out { animation: screenOut .12s ease-in both; pointer-events: none; z-index: 0; }
+.screen-in { z-index: 1; }
 @keyframes screenIn { from { opacity: 0; transform: translateY(12px); } }
 @keyframes screenOut { to { opacity: 0; } }
 

@@ -62,7 +62,7 @@ G.Cloud = (() => {
     }
     G.applyAccess();
     G.Audio.applySettings();
-    const cur = G.$('#screens') && G.$('#screens').firstElementChild;
+    const cur = G.$('#screens') && G.$('#screens').lastElementChild; // l'écran affiché est le dernier ajouté
     const cls = cur ? cur.className : '';
     if (/map-screen/.test(cls)) G.UI.map();
     else if (/settings-screen/.test(cls)) G.UI.settings();
