@@ -1033,6 +1033,7 @@ UI.results = (r) => {
       ${r.weekly ? `<div class="res-ach"><b>${G.icon('trophy')} Défi de la semaine</b><span>Ton meilleur score : ${G.fmt(r.weekly.best)} pts${r.weekly.reward ? ` · +${r.weekly.reward} tickets d'or` : ''}</span></div><button class="btn btn-ghost btn-challenge" data-wshare>${G.icon('share')} Défier mes amis cette semaine</button><p class="share-preview" data-wprev hidden></p>` : ''}
       ${r.eventReward ? `<div class="res-rank">${G.icon('gold')} Événement réussi : +${r.eventReward} tickets d'or</div>` : ''}
       ${r.challenge ? `<div class="res-ach"><b>${G.icon('trophy')} ${r.challenge.beat ? 'Défi réussi : tu bats ton ami !' : 'Défi raté'}</b><span>Score à battre : ${G.fmt(r.challenge.target)}</span></div>` : ''}
+      ${mistakesBlock(r)}
       ${r.story ? `<div class="letter"><div class="letter-head">${G.icon('talk')} Lettre du chef</div><p>${r.story}</p></div>` : ''}
       <div class="res-coins"><span class="money coins">${G.icon('coin')}<b data-rcoins>+${G.fmt(r.coins)}</b></span>
         ${r.coins > 0 ? `<button class="btn btn-gold btn-small" data-double ${G.save.gold < 1 ? 'disabled' : ''}>Doubler · 1 ${G.icon('gold')}</button>` : ''}</div>
@@ -1064,6 +1065,7 @@ UI.results = (r) => {
     dbl.innerHTML = `${G.icon('check')} Doublé`;
     G.Audio.sfx('coin');
   });
+  G.$$('[data-mistake]', m.el).forEach((b) => b.addEventListener('click', () => mistakeDetail(r.mistakes[Number(b.dataset.mistake)])));
   const nx = G.$('[data-next]', m.el);
   if (nx) nx.addEventListener('click', () => leave(() => G.Game.start(cfg.nightmare ? G.nightmareConfig(nextG) : G.levelConfig(nextG))));
   const rt = G.$('[data-retry]', m.el);
@@ -1086,6 +1088,53 @@ UI.results = (r) => {
   });
   G.$('[data-map]', m.el).addEventListener('click', () => leave(() => UI.map()));
 };
+
+/* ---------- Récapitulatif des erreurs (fin de service) ---------- */
+const MISTAKE_LABEL = {
+  missed: 'Fraudeur validé',
+  wrongfine: 'Amende injuste',
+  minor: 'Il fallait avertir',
+  late: 'Trop lent',
+  inverted: "Poisson d'avril",
+};
+function mistakesBlock(r) {
+  const list = r.mistakes || [];
+  if (!list.length) return '';
+  const n = list.length;
+  // Service raté : le récapitulatif est ouvert d'office, c'est lui qui explique l'échec
+  return `<details class="mistakes" ${r.success ? '' : 'open'}>
+    <summary>${G.icon('cross')} ${r.success ? `Tes erreurs (${n})` : `Pourquoi c'est raté ? (${n} erreur${n > 1 ? 's' : ''})`}</summary>
+    <p class="mk-help">Touche une erreur pour revoir les papiers et la faute.</p>
+    <div class="mk-list">${list.map((x, i) => `<button class="mk-row mk-${x.kind}" data-mistake="${i}">
+      <span class="mk-photo">${G.drawPerson(x.look, { photo: true })}</span>
+      <span class="mk-txt"><b>${MISTAKE_LABEL[x.kind] || 'Erreur'}</b><small>${x.kind === 'missed' ? x.reason : x.msg}</small></span>
+      ${G.icon('back', 'flip')}
+    </button>`).join('')}</div>
+  </details>`;
+}
+function mistakeDetail(x) {
+  if (!x) return;
+  G.Audio.sfx('click');
+  const m = G.modal(`<div class="mk-detail">
+      <h2>${MISTAKE_LABEL[x.kind] || 'Erreur'}</h2>
+      <p class="mk-msg">${x.msg}</p>
+      <div class="mk-docs" data-mkdocs><div class="doc-slot"></div><div class="doc-slot"></div></div>
+      ${x.hint ? '<p class="mk-legend"><i></i> La faute est entourée en rouge.</p>' : ''}
+      <button class="btn btn-primary" data-ok>Compris</button>
+    </div>`, { cls: 'modal-mistake' });
+  // chaque papier est rempli à part : le HTML d'un document reste dans sa case
+  const slots = G.$$('[data-mkdocs] .doc-slot', m.el);
+  slots[0].innerHTML = x.ticket;
+  slots[1].innerHTML = x.id;
+  if (x.hint) {
+    const f = G.$(`[data-f="${x.hint}"]`, m.el);
+    if (f) {
+      f.classList.add('flag');
+      f.appendChild(G.el('i', 'flag-ring'));
+    }
+  }
+  G.$('[data-ok]', m.el).addEventListener('click', () => m.close());
+}
 
 /* ---------- Fin de la Ligne infinie ---------- */
 UI.endlessResults = (r) => {

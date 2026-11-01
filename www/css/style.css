@@ -1552,3 +1552,44 @@ html.calm *, html.calm *::before, html.calm *::after { animation-duration: .01ms
 /* Envolé : il disparaît au bout du wagon, les mains retombent */
 .chase-stage.escaped .cs-runner { transform: translateX(-50%) scale(.15); opacity: 0; transition: transform .5s ease-in, opacity .5s; }
 .chase-stage.escaped > .ch-hand { --reach: 0; animation: none; translate: 0 40px; transition: translate .4s ease-in, transform .4s; }
+
+/* ---------- Erreur plus lisible sur le coup ---------- */
+/* L'encadré monte au-dessus du passager pour ne plus cacher les papiers où la faute est entourée */
+.explain { top: calc(env(safe-area-inset-top, 0px) + 112px); bottom: auto; font-size: 16px; line-height: 1.3; padding: 12px 16px; gap: 4px; }
+.explain b { font-size: 21px; }
+.explain.ex-wrongfine { background: #d9480f; }
+.explain.ex-late { background: #5c677d; }
+[data-f].flag { position: relative; animation: flagBlink .5s ease-in-out 3; }
+@keyframes flagBlink { 50% { background: rgba(233, 79, 79, .35); } }
+.flag-ring { position: absolute; inset: -.35em -.45em; border: .28em solid var(--red); border-radius: 50% / 46%; pointer-events: none; z-index: 3;
+  animation: ringIn .4s cubic-bezier(.2, 1.5, .4, 1) both, ringPulse 1s ease-in-out .4s infinite; }
+@keyframes ringIn { from { transform: scale(1.8) rotate(-8deg); opacity: 0; } }
+@keyframes ringPulse { 50% { transform: scale(1.06); } }
+
+/* ---------- Récapitulatif des erreurs en fin de service ---------- */
+.mistakes { margin: 8px 0; border: 3px solid var(--ink); border-radius: 14px; background: #fff1f1; text-align: left; overflow: hidden; }
+.mistakes summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 6px; padding: 10px 12px; font-family: var(--f-display); font-size: 17px; color: var(--red-2); }
+.mistakes summary::-webkit-details-marker { display: none; }
+.mistakes summary .ic { width: 18px; height: 18px; }
+.mistakes summary::after { content: '▾'; margin-left: auto; transition: transform .2s; }
+.mistakes[open] summary::after { transform: rotate(180deg); }
+.mk-help { margin: 0 12px 6px !important; font-size: 12px !important; color: var(--muted) !important; }
+.mk-list { display: flex; flex-direction: column; gap: 6px; padding: 0 8px 10px; }
+.mk-row { display: flex; align-items: center; gap: 10px; padding: 6px 8px; border-radius: 12px; background: var(--paper); border: 2.5px solid var(--ink); text-align: left; }
+.mk-row > .ic { width: 16px; height: 16px; flex: none; opacity: .5; }
+.mk-photo { width: 40px; height: 48px; flex: none; border-radius: 8px; overflow: hidden; border: 2px solid var(--ink); background: #e4f1ff; }
+.mk-photo .pax-svg { width: 100%; height: 100%; }
+.mk-txt { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.mk-txt b { font-size: 14px; }
+.mk-txt small { font-size: 12px; color: var(--ink-2); line-height: 1.3; }
+.mk-missed .mk-txt b { color: var(--red-2); }
+.mk-wrongfine .mk-txt b { color: #d9480f; }
+.mk-detail { text-align: center; }
+.mk-detail .mk-msg { font-size: 16px !important; font-weight: 800; color: var(--ink) !important; }
+.mk-docs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 10px 0; text-align: left; }
+.mk-docs .doc { font-size: 9.5px; }
+.mk-legend { display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 13px !important; }
+.mk-legend i { width: 22px; height: 14px; border: 3px solid var(--red); border-radius: 50%; }
+.mk-detail .btn { width: 100%; }
+.mk-detail { display: flex; flex-direction: column; align-items: stretch; }
+.mk-detail .mk-legend { width: 100%; margin: 0 0 8px !important; }

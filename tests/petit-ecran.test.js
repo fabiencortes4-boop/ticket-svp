@@ -27,7 +27,7 @@ for (let i=0;i<39;i++) save.levels[i]=2;
     await p.click(k < 3 ? (f ? '[data-act="ok"]' : '[data-act="fine"]') : (f ? '[data-act="fine"]' : '[data-act="ok"]'));
     await p.waitForTimeout(k < 3 ? 600 : 300);
     if (k === 0) await p.screenshot({ path: 'shots/43-wrong.png' });
-    await p.waitForTimeout(2100);
+    await p.waitForTimeout(2500); // après une erreur, le jeu laisse ~2,9 s pour lire l'explication
     if (await p.$('.modal-go')) { await p.screenshot({ path: 'shots/44-gameover.png' }); break; }
   }
   console.log(errs.join('\n') || 'NO ERRORS');

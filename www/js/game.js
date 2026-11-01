@@ -44,6 +44,7 @@ Game.start = (cfg) => {
     caught: 0,
     coins: 0,
     results: [],
+    mistakes: [], // erreurs du service, pour le récapitulatif de fin
     newAlbum: [],
     lastTick: 0,
     raf: 0,
@@ -611,8 +612,19 @@ function decide(verdict, timeout, warn) {
     else if (fined) msg = `Plainte ! Ce passager était en règle.`;
     else msg = `Fraudeur ! ${p.reason}`;
     if (p.special === 'influencer') msg += ' La vidéo devient virale : -2 réputation.';
+    // On garde le passager et ses papiers pour le récapitulatif de fin de service
+    st.mistakes.push({
+      look: p.look,
+      kind: timeout ? 'late' : st.cfg.inverted ? 'inverted' : fined ? (p.minor ? 'minor' : 'wrongfine') : 'missed',
+      msg,
+      reason: p.reason || '',
+      hint: !fined && !timeout ? p.hint : null,
+      ticket: G.renderTicket(p, st.cfg, st.ctx),
+      id: G.renderId(p, st.cfg, st.ctx),
+      name: p.name || '',
+    });
     showBubble(timeout ? 'Bon, j\'y vais !' : sp ? (fined ? sp.caught : sp.escaped) : fined ? G.rng(st.idx + 11).pick(G.LINES.wronged) : G.rng(st.idx + 5).pick(G.LINES.escaped), fined ? 'angry' : '');
-    explain(msg, p);
+    explain(msg, p, timeout ? 'late' : fined ? 'wrongfine' : 'missed');
   }
   G.save.stats.checked++;
   if (fined && p.fraud) G.save.stats.caught++;
@@ -636,7 +648,7 @@ function decide(verdict, timeout, warn) {
       paxEl.classList.add(`leave-${dir}`);
     }
     e.docs.classList.add('leave');
-  }, correct ? 650 : 1500);
+  }, correct ? 650 : errPause(1500, 2500));
   later(() => {
     e.bubble.hidden = true;
     st.idx++;
@@ -645,8 +657,10 @@ function decide(verdict, timeout, warn) {
       st.pendingChase = false;
       runChase(proceed);
     } else proceed();
-  }, correct ? 1000 : 1900);
+  }, correct ? 1000 : errPause(1900, 2900));
 }
+// Après une erreur, on laisse le temps de lire (sauf si un chrono global tourne : ce serait une pénalité)
+const errPause = (short, long) => (st && st.cfg.timeAttack ? short : long);
 
 /* Passager suivant, ou fin de station en Ligne infinie */
 function proceed() {
@@ -741,15 +755,22 @@ function applyPerk(id) {
 }
 
 /* Explication de l'erreur, pour apprendre en jouant */
-function explain(msg, p) {
-  const box = G.el('div', 'explain', `<b>${G.icon('cross')} Erreur</b><span>${msg}</span>`);
+function explain(msg, p, kind) {
+  const title = { late: 'Trop lent !', wrongfine: 'Amende injuste', missed: 'Fraudeur laissé passer' }[kind] || 'Erreur';
+  const long = !st.cfg.timeAttack;
+  const box = G.el('div', `explain ex-${kind || 'err'}`, `<b>${G.icon('cross')} ${title}</b><span>${msg}</span>`);
   st.root.appendChild(box);
   if (p.hint) {
     const f = G.$(`[data-f="${p.hint}"]`, st.el.docs);
-    if (f) f.classList.add('flag');
+    if (f) {
+      f.classList.add('flag');
+      // repère bien visible sur le champ fautif
+      const ring = G.el('i', 'flag-ring');
+      f.appendChild(ring);
+    }
   }
-  setTimeout(() => box.classList.add('out'), 1550);
-  setTimeout(() => box.remove(), 1900);
+  setTimeout(() => box.classList.add('out'), long ? 2450 : 1550);
+  setTimeout(() => box.remove(), long ? 2800 : 1900);
 }
 
 /* ---------- Chrono ---------- */
@@ -1224,7 +1245,7 @@ function finish(completed) {
   const challengeCode = !cfg.daily && !cfg.event && !cfg.weekly && !cfg.nightmare ? G.makeChallengeCode(cfg.g, st.seed, st.score) : null;
   const rushInfo = cfg.bossMech === 'rush' ? { done: correctCount, target: cfg.rushTarget } : null;
   const mystery = st.mystery ? { solved: st.mystery.solved } : null;
-  G.UI.results({ cfg, success, stars, score: st.score, correct, total: st.results.length, acc, caught: st.caught, bestCombo: st.bestCombo, coins, xp, newAlbum: st.newAlbum.slice(), bestMoment: st.bestMoment, rankUp, firstClear, objectives, unlocked, story, challengeCode, challenge: cfg.challengeScore != null ? { target: cfg.challengeScore, beat: st.score > cfg.challengeScore } : null, eventReward, rushInfo, mystery, weekly });
+  G.UI.results({ cfg, mistakes: st.mistakes.slice(), success, stars, score: st.score, correct, total: st.results.length, acc, caught: st.caught, bestCombo: st.bestCombo, coins, xp, newAlbum: st.newAlbum.slice(), bestMoment: st.bestMoment, rankUp, firstClear, objectives, unlocked, story, challengeCode, challenge: cfg.challengeScore != null ? { target: cfg.challengeScore, beat: st.score > cfg.challengeScore } : null, eventReward, rushInfo, mystery, weekly });
   Game.cleanup();
 }
 

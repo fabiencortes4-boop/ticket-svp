@@ -203,7 +203,7 @@ G.ruleCard = (ruleId, cfg) => {
     case 'stamp':
       return pair(`<div class="rc-stamp">${G.stampSvg('ok', cfg.city, '08:42', G.fmtDate(today).slice(0, 5))}</div>`, `<div class="rc-stamp">${G.stampSvg('fake', cfg.city, '08:42', '')}</div>`, 'Un vrai tampon est net. Pas de tampon, ou un tampon dessiné : amende !');
     case 'name':
-      return pair(`${big('Abonnement', 'Gérard BAGUETTE')}${big('Carte', 'Gérard BAGUETTE')}`, `${big('Abonnement', 'Gérald BAGUETTE')}${big('Carte', 'Gérard BAGUETTE')}`, 'Le nom doit être exactement le même, lettre par lettre');
+      return pair(`${big('Abonnement', 'Gérard BAGUETTE')}${big("Carte d'identité", 'Gérard BAGUETTE')}`, `${big('Abonnement', 'Gérald BAGUETTE')}${big("Carte d'identité", 'Gérard BAGUETTE')}`, 'Le nom doit être exactement le même, lettre par lettre');
     case 'expiry':
       return pair(big('Carte valable jusqu\'au', G.fmtDate(G.addDays(today, 800))), big('Carte valable jusqu\'au', G.fmtDate(G.addDays(today, -120))), `${G.icon('calendar')} Aujourd'hui : <b>${G.fmtDate(today)}</b>`);
     case 'class':
