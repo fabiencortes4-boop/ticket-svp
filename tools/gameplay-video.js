@@ -77,6 +77,14 @@ const CAP = {
       // boss de Paris : le premier passager porte une fausse moustache
       const i = s.queue.findIndex((q) => q.fakeMustache);
       if (i > 0) [s.queue[0], s.queue[i]] = [s.queue[i], s.queue[0]];
+      else if (i < 0 && s.cfg.bossMech === 'mustache') {
+        // aucun fraudeur à moustache tiré au sort : on en fabrique un (moustache sur le visage, pas sur la photo)
+        const q = s.queue[0];
+        q.look = Object.assign({}, q.look, { facial: 'mustache' });
+        q.photoLook = Object.assign({}, q.photoLook || q.look, { facial: 'none' });
+        q.fakeMustache = true;
+        q.fraud = true;
+      }
     }, [g, extra]);
     await W(500);
     await p.click('[data-go]');

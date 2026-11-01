@@ -553,6 +553,17 @@ A.sfx = (name, arg) => {
     case 'star':
       [1568, 2093, 2637].forEach((f, i) => voice('pulse25', f, t + i * 0.04, 0.1, 0.07, B));
       break;
+    case 'slap': {
+      // claque de dessin animé : « PAF » sec (bruit très aigu), choc sourd, puis petit glissando qui tourne la tête
+      noiseHit(t, 0.045, 0.6, 1800, B, 9500);
+      noiseHit(t + 0.004, 0.11, 0.28, 500, B, 3200);
+      kick(t, B, 0.75);
+      const o = voice('pulse25', 1400, t + 0.05, 0.22, 0.07, B);
+      o.frequency.setValueAtTime(1400, t + 0.05);
+      o.frequency.exponentialRampToValueAtTime(380, t + 0.27);
+      [2093, 2637, 2093].forEach((f, i) => voice('pulse12', f, t + 0.3 + i * 0.09, 0.05, 0.05, B)); // petites étoiles
+      break;
+    }
     case 'whistle': {
       const o = voice('sine', 2100, t, 0.45, 0.16, B);
       const lfo = c.createOscillator();

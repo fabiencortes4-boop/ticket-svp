@@ -664,3 +664,61 @@ G.drawLogo = () => `<svg viewBox="0 0 360 170" class="logo-svg" aria-label="Tick
     <rect x="24" y="138" width="240" height="7" rx="3" fill="#1e2a4a" opacity=".85"/>
   </g>
 </svg>`;
+
+/* ---------- Passager vu de dos, en pleine course (course-poursuite) ---------- */
+G.drawBack = (look = {}) => {
+  const I = '#1e2a4a';
+  const skin = look.skin || '#f0c49a';
+  const coat = look.outfitColor || '#5c677d';
+  const hairC = look.hairColor || '#3b2a1e';
+  const hair = look.kind && look.kind !== 'person' ? 'none' : look.hair || 'short';
+  const hat = look.hat || 'none';
+  const wide = look.build === 'wide' ? 8 : look.build === 'slim' ? -6 : 0;
+  // cheveux vus de derrière : ils couvrent l'arrière du crâne (ou pas, s'il est chauve)
+  const hairBack = {
+    none: '',
+    short: `<path d="M68 70 C66 36 134 36 132 70 C130 88 70 88 68 70Z" fill="${hairC}" stroke="${I}" stroke-width="4"/>`,
+    spiky: `<path d="M66 72 L64 48 L76 56 L80 34 L92 50 L100 30 L108 50 L120 34 L124 56 L136 48 L134 72 C128 90 72 90 66 72Z" fill="${hairC}" stroke="${I}" stroke-width="4" stroke-linejoin="round"/>`,
+    afro: `<circle cx="100" cy="58" r="44" fill="${hairC}" stroke="${I}" stroke-width="4"/>`,
+    bob: `<path d="M62 92 C56 30 144 30 138 92 C120 100 80 100 62 92Z" fill="${hairC}" stroke="${I}" stroke-width="4"/>`,
+    bun: `<path d="M68 74 C66 38 134 38 132 74 C128 90 72 90 68 74Z" fill="${hairC}" stroke="${I}" stroke-width="4"/><circle cx="100" cy="40" r="14" fill="${hairC}" stroke="${I}" stroke-width="4"/>`,
+    mohawk: `<path d="M92 86 L90 30 Q100 18 110 30 L108 86Z" fill="${hairC}" stroke="${I}" stroke-width="4"/>`,
+    long: `<path d="M64 112 C52 32 148 32 136 112 C124 120 76 120 64 112Z" fill="${hairC}" stroke="${I}" stroke-width="4"/>`,
+    curly: `<path d="M64 76 C56 40 78 28 100 30 C122 28 144 40 136 76 C130 92 70 92 64 76Z" fill="${hairC}" stroke="${I}" stroke-width="4"/><g fill="none" stroke="${I}" stroke-width="2.5" opacity=".35"><path d="M78 50 q6 -6 12 0 M98 44 q6 -6 12 0 M84 66 q6 -6 12 0 M108 62 q6 -6 12 0"/></g>`,
+    side: `<path d="M66 74 C64 36 136 36 134 74 C128 92 72 92 66 74Z" fill="${hairC}" stroke="${I}" stroke-width="4"/><path d="M76 46 Q100 40 128 58" stroke="${I}" stroke-width="2.5" fill="none" opacity=".3"/>`,
+  }[hair] || '';
+  const hatBack = hat === 'none' || hat === 'flower' ? '' : hat === 'top'
+    ? `<rect x="74" y="8" width="52" height="40" rx="4" fill="${look.hatColor || '#222'}" stroke="${I}" stroke-width="4"/><rect x="62" y="44" width="76" height="10" rx="5" fill="${look.hatColor || '#222'}" stroke="${I}" stroke-width="4"/>`
+    : hat === 'cap'
+    ? `<path d="M66 60 C66 26 134 26 134 60Z" fill="${look.hatColor || '#e94f4f'}" stroke="${I}" stroke-width="4"/><rect x="88" y="52" width="24" height="8" rx="3" fill="${G.shade(look.hatColor || '#e94f4f', -0.2)}" stroke="${I}" stroke-width="3"/>`
+    : `<path d="M64 62 C62 24 138 24 136 62 Z" fill="${look.hatColor || '#3a86ff'}" stroke="${I}" stroke-width="4"/><path d="M62 60 L138 60" stroke="${I}" stroke-width="5" stroke-linecap="round"/>`;
+  return `<svg class="back-svg" viewBox="0 0 200 246" aria-hidden="true">
+    <g class="bk-leg bk-leg-l"><path d="M84 182 L76 234" stroke="#2b3550" stroke-width="20" stroke-linecap="round"/><ellipse cx="74" cy="238" rx="14" ry="7" fill="#222" stroke="${I}" stroke-width="3"/></g>
+    <g class="bk-leg bk-leg-r"><path d="M116 182 L124 234" stroke="#2b3550" stroke-width="20" stroke-linecap="round"/><ellipse cx="126" cy="238" rx="14" ry="7" fill="#222" stroke="${I}" stroke-width="3"/></g>
+    <g class="bk-arm bk-arm-l"><path d="M${66 - wide} 110 L${48 - wide} 150" stroke="${coat}" stroke-width="18" stroke-linecap="round"/><path d="M${66 - wide} 110 L${48 - wide} 150" stroke="${I}" stroke-width="22" stroke-linecap="round" opacity=".0"/><circle cx="${47 - wide}" cy="154" r="9" fill="${skin}" stroke="${I}" stroke-width="3.5"/></g>
+    <g class="bk-arm bk-arm-r"><path d="M${134 + wide} 110 L${152 + wide} 150" stroke="${coat}" stroke-width="18" stroke-linecap="round"/><circle cx="${153 + wide}" cy="154" r="9" fill="${skin}" stroke="${I}" stroke-width="3.5"/></g>
+    <path d="M${70 - wide} 104 Q100 92 ${130 + wide} 104 L${126 + wide} 190 Q100 196 ${74 - wide} 190Z" fill="${coat}" stroke="${I}" stroke-width="4.5" stroke-linejoin="round"/>
+    <path d="M100 100 L100 188" stroke="${I}" stroke-width="2.5" opacity=".18"/>
+    <path d="M${78 - wide} 182 Q100 188 ${122 + wide} 182" stroke="${I}" stroke-width="3" fill="none" opacity=".25"/>
+    <g class="bk-head">
+      <rect x="90" y="84" width="20" height="18" rx="6" fill="${G.shade(skin, -0.08)}" stroke="${I}" stroke-width="3.5"/>
+      <ellipse cx="66" cy="70" rx="6" ry="9" fill="${skin}" stroke="${I}" stroke-width="3.5"/><ellipse cx="134" cy="70" rx="6" ry="9" fill="${skin}" stroke="${I}" stroke-width="3.5"/>
+      <circle cx="100" cy="64" r="32" fill="${skin}" stroke="${I}" stroke-width="4"/>
+      ${hairBack}${hatBack}
+      <path class="bk-bump" d="M100 34 q-6 -10 0 -16 q6 6 0 16Z" fill="#ff8fa3" stroke="${I}" stroke-width="2.5" opacity="0"/>
+    </g>
+  </svg>`;
+};
+
+/* Main à plat du contrôleur qui court (vue à la première personne) : avant-bras dans la manche de l'uniforme */
+G.drawSprintHand = (side, coat, trim) => {
+  const I = '#1e2a4a';
+  const f = side === 'left' ? 1 : -1;
+  return `<svg class="ch-hand ch-${side}" viewBox="0 0 120 170" aria-hidden="true"><g transform="translate(${side === 'left' ? 0 : 120} 0) scale(${f} 1)">
+    <path d="M10 170 L40 92 Q46 80 60 84 L82 92 Q94 98 88 112 L60 170Z" fill="${coat}" stroke="${I}" stroke-width="5" stroke-linejoin="round"/>
+    <path d="M38 98 L88 112" stroke="${trim}" stroke-width="9" stroke-linecap="round"/>
+    <path d="M44 92 Q40 46 64 22 Q80 8 92 18 Q100 28 92 44 Q86 66 86 96 Z" fill="#fff" stroke="${I}" stroke-width="5" stroke-linejoin="round"/>
+    <path d="M58 36 Q70 30 84 32 M54 50 Q68 44 84 48 M52 64 Q66 60 84 64" stroke="${I}" stroke-width="2.5" fill="none" opacity=".3" stroke-linecap="round"/>
+    <path d="M46 78 Q38 70 42 60 Q50 58 56 70" fill="#fff" stroke="${I}" stroke-width="4" stroke-linejoin="round"/>
+  </g></svg>`;
+};

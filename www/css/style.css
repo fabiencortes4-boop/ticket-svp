@@ -1488,3 +1488,67 @@ html.calm *, html.calm *::before, html.calm *::after { animation-duration: .01ms
 .title-cloud.c2 { top: 34%; width: 54px; opacity: .65; animation-duration: 52s; animation-delay: -30s; transform: scale(.8); }
 .title-cloud.c3 { top: 9%; width: 90px; opacity: .75; animation-duration: 64s; animation-delay: -44s; }
 @keyframes cloudDrift { from { left: -140px; } to { left: 110%; } }
+
+/* ---------- Course-poursuite : fuyard de dos et mains du contrôleur ---------- */
+.chase-stage { position: relative; height: 190px; margin: 6px 0 4px; border-radius: 16px; border: 3px solid var(--ink); overflow: hidden; background: linear-gradient(#3a4a7a, #1d2850 55%, #6b4f3a 55.5%, #4a3626); }
+.cs-corridor { position: absolute; inset: 0; background:
+  linear-gradient(transparent 54%, rgba(0, 0, 0, .25) 54%, transparent 70%),
+  repeating-linear-gradient(90deg, transparent 0 46px, rgba(255, 255, 255, .06) 46px 50px);
+  animation: csRush .5s linear infinite; }
+.cs-corridor::before { content: ''; position: absolute; left: 50%; top: 8%; width: 70px; height: 46%; margin-left: -35px; border-radius: 8px; background: radial-gradient(#fff6c8, #ffd66b 60%, #c99a3a); border: 3px solid var(--ink); opacity: .85; } /* porte du bout du wagon, éclairée */
+@keyframes csRush { from { background-position: 0 0, 0 0; } to { background-position: 0 0, 50px 0; } }
+.cs-runner { position: absolute; left: 50%; bottom: 12%; height: 76%; aspect-ratio: 200 / 246; transform: translateX(-50%) scale(var(--far)); transform-origin: 50% 100%; transition: transform .12s linear; }
+.cs-runner .pax-svg { width: 100%; height: 100%; animation: csRun .26s ease-in-out infinite alternate; transform-origin: 50% 100%; }
+@keyframes csRun { from { transform: translateY(0) rotate(-6deg); } to { transform: translateY(-7px) rotate(6deg); } }
+.cs-dust { position: absolute; bottom: -2px; left: 18%; width: 22px; height: 12px; border-radius: 50%; background: rgba(255, 255, 255, .55); animation: csDust .5s ease-out infinite; }
+.cs-dust.d2 { left: auto; right: 18%; animation-delay: .25s; }
+@keyframes csDust { from { transform: scale(.4); opacity: .8; } to { transform: translate(0, -6px) scale(1.4); opacity: 0; } }
+/* Le fuyard de dos : jambes et bras qui alternent */
+.cs-runner .back-svg { width: 100%; height: 100%; animation: csRunBody .24s ease-in-out infinite alternate; transform-origin: 50% 100%; }
+@keyframes csRunBody { from { transform: translateY(0) rotate(-3deg); } to { transform: translateY(-6px) rotate(3deg); } }
+.back-svg .bk-leg, .back-svg .bk-arm { transform-box: fill-box; transform-origin: 50% 0; }
+.back-svg .bk-leg-l, .back-svg .bk-arm-r { animation: csLimbA .24s ease-in-out infinite alternate; }
+.back-svg .bk-leg-r, .back-svg .bk-arm-l { animation: csLimbB .24s ease-in-out infinite alternate; }
+@keyframes csLimbA { from { transform: rotate(18deg) scaleY(1.05); } to { transform: rotate(-14deg) scaleY(.88); } }
+@keyframes csLimbB { from { transform: rotate(-14deg) scaleY(.88); } to { transform: rotate(18deg) scaleY(1.05); } }
+.back-svg .bk-head { transform-box: fill-box; transform-origin: 50% 100%; }
+
+/* Les mains à plat du contrôleur : elles pompent comme celles d'un sprinteur (vue à la première personne)
+   et se rapprochent du fuyard avec --reach (0 → 1) */
+.ch-hand { position: absolute; bottom: -58px; width: 82px; height: 116px; filter: drop-shadow(0 4px 0 rgba(0, 0, 0, .3)); transition: transform .16s cubic-bezier(.2, 1.2, .4, 1); }
+.chase-stage > .ch-left { left: -26px; transform: translate(calc(var(--reach) * 46px), calc(var(--reach) * -22px)) rotate(calc(12deg - var(--reach) * 8deg)) scale(calc(1 - var(--reach) * .12)); transform-origin: 40% 100%; animation: pumpL .3s ease-in-out infinite alternate; }
+.chase-stage > .ch-right { right: -26px; transform: translate(calc(var(--reach) * -46px), calc(var(--reach) * -22px)) rotate(calc(-12deg + var(--reach) * 8deg)) scale(calc(1 - var(--reach) * .12)); transform-origin: 60% 100%; animation: pumpR .3s ease-in-out infinite alternate; }
+@keyframes pumpL { from { translate: 0 34px; rotate: 10deg; } to { translate: 0 -16px; rotate: -6deg; } }
+@keyframes pumpR { from { translate: 0 -16px; rotate: 6deg; } to { translate: 0 34px; rotate: -10deg; } }
+.chase-stage.lunge > .ch-left, .chase-stage.lunge > .ch-right { animation-duration: .16s; } /* il accélère quand on tape */
+/* Rattrapé : la main gauche s'écarte, la droite part en arc et claque l'arrière de la tête */
+.chase-stage.caught { --reach: 1 !important; }
+.chase-stage.caught > .ch-left, .chase-stage.caught > .ch-right { animation: none; }
+.chase-stage.caught > .ch-right { opacity: 0; }
+.cs-slap { position: absolute; right: -40px; bottom: -80px; width: 100px; height: 142px; opacity: 0; pointer-events: none; transform-origin: 70% 100%; }
+.cs-slap .ch-hand { position: static; width: 100%; height: 100%; animation: none; transform: none; }
+.chase-stage.caught .cs-slap { opacity: 1; animation: slapSwing .26s cubic-bezier(.5, 0, .9, .6) forwards; }
+@keyframes slapSwing {
+  0% { transform: translate(0, 0) rotate(24deg); }
+  60% { transform: translate(-84px, -160px) rotate(-14deg); }
+  100% { transform: translate(-112px, -186px) rotate(-34deg); }
+}
+.chase-stage.slapped .cs-slap { animation: slapBack .5s ease-in .12s forwards; transform: translate(-112px, -186px) rotate(-34deg); }
+@keyframes slapBack { from { transform: translate(-112px, -186px) rotate(-34deg); } to { transform: translate(-30px, 30px) rotate(14deg); opacity: 0; } }
+.chase-stage.caught .cs-runner .back-svg, .chase-stage.caught .back-svg * { animation-play-state: paused; }
+.chase-stage.slapped .bk-head { animation: headJolt .4s ease-out both; }
+@keyframes headJolt { 0% { transform: translateY(0) rotate(0); } 25% { transform: translateY(9px) rotate(-7deg) scale(.96); } 60% { transform: translateY(-2px) rotate(3deg); } 100% { transform: translateY(2px) rotate(0); } }
+.chase-stage.slapped .bk-bump { opacity: 1; transition: opacity .1s .08s; }
+.chase-stage.caught .cs-dust, .chase-stage.caught .cs-corridor { animation-play-state: paused; }
+.cs-paf { position: absolute; left: 62%; top: -6%; font: 400 30px/1 var(--f-display); color: #fff; background: var(--red); padding: 6px 10px 4px; border: 3px solid var(--ink); border-radius: 10px; transform: rotate(12deg) scale(0); white-space: nowrap; pointer-events: none;
+  clip-path: polygon(0 18%, 14% 0, 28% 14%, 46% 0, 60% 16%, 80% 2%, 88% 22%, 100% 30%, 90% 52%, 100% 74%, 84% 82%, 74% 100%, 54% 86%, 38% 100%, 24% 84%, 6% 92%, 10% 66%, 0 48%); }
+.chase-stage.slapped .cs-paf { animation: pafPop .5s cubic-bezier(.2, 1.6, .4, 1) both; }
+@keyframes pafPop { 0% { transform: rotate(12deg) scale(0); } 60% { transform: rotate(-6deg) scale(1.15); } 100% { transform: rotate(4deg) scale(1); } }
+.cs-stars { position: absolute; left: 50%; top: 2%; width: 60px; height: 18px; margin-left: -30px; opacity: 0; pointer-events: none;
+  background: radial-gradient(circle, #ffd23f 0 4px, transparent 5px) 0 50% / 20px 18px repeat-x; }
+.chase-stage.slapped .cs-stars { opacity: 1; animation: starsSpin .5s linear infinite; }
+@keyframes starsSpin { from { background-position: 0 50%; } to { background-position: 20px 50%; } }
+.chase-stage.caught::after { display: none; }
+/* Envolé : il disparaît au bout du wagon, les mains retombent */
+.chase-stage.escaped .cs-runner { transform: translateX(-50%) scale(.15); opacity: 0; transition: transform .5s ease-in, opacity .5s; }
+.chase-stage.escaped > .ch-hand { --reach: 0; animation: none; translate: 0 40px; transition: translate .4s ease-in, transform .4s; }

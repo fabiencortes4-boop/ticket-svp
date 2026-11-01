@@ -1303,44 +1303,82 @@ function endWatch() {
   else later(() => G.toast(`${G.icon('cross')} L'inspecteur a noté une erreur. Pas de prime cette fois.`), 400);
 }
 
-/* Course-poursuite : taper vite pour rattraper le fraudeur qui s'enfuit */
+/* Course-poursuite : taper vite pour rattraper le fraudeur qui s'enfuit.
+   Vue à la première personne : le fuyard, de dos, court vers le bout du wagon ; les mains à plat
+   du contrôleur pompent comme celles d'un sprinteur et le rattrapent à chaque appui.
+   Rattrapé : une claque sur l'arrière de la tête, « PAF ! ». */
 function runChase(done) {
   st.miniEvent.done = true;
   st.state = 'event';
   const need = 8;
   let taps = 0;
   let over = false;
+  const runner = st.queue[st.idx - 1];
+  const u = G.UNIFORMS.find((x) => x.id === G.save.uniform) || G.UNIFORMS[0];
   const ov = G.el('div', 'mini-ev chase');
-  ov.innerHTML = `<div class="mini-card"><div class="mini-kicker">Mini-événement</div><h3>Il s'enfuit !</h3><p>Tape vite sur le bouton pour le rattraper.</p>
+  ov.innerHTML = `<div class="mini-card"><div class="mini-kicker">Mini-événement</div><h3>Il s'enfuit !</h3>
+    <div class="chase-stage" data-cstage style="--reach:0;--far:1">
+      <div class="cs-corridor"></div>
+      <div class="cs-runner" data-crunner>${G.drawBack(runner ? runner.look : {})}<i class="cs-dust"></i><i class="cs-dust d2"></i><b class="cs-paf">PAF !</b><i class="cs-stars"></i></div>
+      ${G.drawSprintHand('left', u.coat, u.trim)}${G.drawSprintHand('right', u.coat, u.trim)}
+      <div class="cs-slap">${G.drawSprintHand('right', u.coat, u.trim)}</div>
+    </div>
+    <p>Tape vite sur le bouton pour le rattraper.</p>
     <div class="chase-bar"><i data-cbar></i></div><button class="btn btn-primary chase-btn" data-ctap>${G.icon('hand')} Attrape-le !</button><div class="chase-time"><i data-ctime></i></div></div>`;
   st.root.appendChild(ov);
   const bar = G.$('[data-cbar]', ov);
   const tbar = G.$('[data-ctime]', ov);
+  const stage = G.$('[data-cstage]', ov);
   const t0 = performance.now();
   const total = 3200;
+  // Le fuyard s'éloigne avec le temps ; chaque appui rapproche les mains et regagne du terrain
+  const place = (tf) => {
+    const prog = taps / need;
+    stage.style.setProperty('--reach', prog.toFixed(3));
+    stage.style.setProperty('--far', Math.max(0.45, Math.min(1, 0.92 - tf * 0.42 + prog * 0.38)).toFixed(3));
+  };
   const finishChase = (won) => {
     if (over) return;
     over = true;
-    ov.remove();
-    if (won) rewardEvent(200, 8, 'Rattrapé ! +200');
-    else G.toast(`${G.icon('cross')} Il a filé… Pas grave, l'amende est encaissée.`);
-    st.state = 'resolve';
-    later(done, 500);
+    stage.classList.add(won ? 'caught' : 'escaped');
+    if (won) {
+      // la main droite part en arc et claque l'arrière de la tête
+      later(() => {
+        stage.classList.add('slapped');
+        G.Audio.sfx('slap');
+        G.vibrate([35, 25, 70]);
+      }, 210);
+    }
+    later(() => {
+      ov.remove();
+      if (!st) return; // le joueur a quitté le service pendant la claque
+      if (won) rewardEvent(200, 8, 'Rattrapé ! +200');
+      else G.toast(`${G.icon('cross')} Il a filé… Pas grave, l'amende est encaissée.`);
+      st.state = 'resolve';
+      later(done, 500);
+    }, won ? 1050 : 650);
   };
   const tick = () => {
     if (over || !st) return;
-    const k = 1 - (performance.now() - t0) / total;
-    tbar.style.transform = `scaleX(${Math.max(0, k)})`;
-    if (k <= 0) return finishChase(false);
+    const tf = (performance.now() - t0) / total;
+    tbar.style.transform = `scaleX(${Math.max(0, 1 - tf)})`;
+    place(Math.min(1, tf));
+    if (tf >= 1) return finishChase(false);
     requestAnimationFrame(tick);
   };
   requestAnimationFrame(tick);
   G.$('[data-ctap]', ov).addEventListener('pointerdown', (e) => {
     e.preventDefault();
+    if (over) return;
     taps++;
     G.Audio.sfx('tap');
     G.vibrate(10);
     bar.style.transform = `scaleX(${Math.min(1, taps / need)})`;
+    // petit élan des mains vers l'avant à chaque appui
+    stage.classList.remove('lunge');
+    void stage.offsetWidth;
+    stage.classList.add('lunge');
+    place(Math.min(1, (performance.now() - t0) / total));
     if (taps >= need) finishChase(true);
   });
   G.Audio.sfx('whistle');
