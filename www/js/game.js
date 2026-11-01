@@ -517,6 +517,7 @@ function decide(verdict, timeout, warn) {
   const stamp = G.el('div', `verdict-stamp ${G.verdictClass()} ${timeout ? 'late' : fined ? 'fine' : warn ? 'warn' : 'ok'}`, timeout ? 'TROP TARD' : fined ? 'AMENDE<small>50 €</small>' : warn ? 'AVERTI' : 'VALIDÉ');
   e.docs.appendChild(stamp);
   G.Audio.sfx(timeout ? 'alarm' : fined ? 'fine' : 'stamp');
+  if (correct && !timeout) later(() => G.FX.sparks(stamp, fined ? '#ff8a8a' : '#8dffbf'), 140);
   G.vibrate(fined ? [30, 40, 30] : 25);
 
   st.results.push({ correct, fraud: p.fraud, special: !!p.special });
@@ -557,13 +558,14 @@ function decide(verdict, timeout, warn) {
     if (fined) {
       st.caught++;
       st.coins += G.ECO.fine * st.coinMult;
+      G.FX.coins(e.pax, e.finesChip, 4); // les pièces volent du fraudeur vers la caisse
       later(() => {
         G.Audio.sfx('coin');
         e.fines.textContent = st.coins;
         e.finesChip.classList.remove('bump');
         void e.finesChip.offsetWidth;
         e.finesChip.classList.add('bump');
-      }, 380);
+      }, 760);
     }
     if (st.combo >= 3 && [3, 6, 10].includes(st.combo)) {
       later(() => {
@@ -586,6 +588,8 @@ function decide(verdict, timeout, warn) {
   } else {
     st.combo = st.comboFloor;
     const cost = p.special === 'influencer' ? 2 : 1;
+    G.FX.shieldBreak(e.rep.children[st.rep - 1]); // le bouclier perdu éclate
+    G.FX.hurt();
     st.rep = Math.max(0, st.rep - cost);
     const penalty = timeout ? 60 : fined ? 150 : 60;
     setScore(st.score - penalty);

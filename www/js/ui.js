@@ -121,7 +121,7 @@ function refreshWallet() {
 UI.title = () => {
   const root = G.el('div', 'screen title-screen');
   root.innerHTML = `
-    <div class="title-sky"><div class="title-sun"></div></div>
+    <div class="title-sky"><div class="title-sun"></div><i class="title-cloud c1"></i><i class="title-cloud c2"></i><i class="title-cloud c3"></i></div>
     <div class="title-city">${skylineSvg()}</div>
     <div class="title-logo">${G.drawLogo()}</div>
     <p class="title-tag">Le jeu du contrôleur de métro</p>

@@ -1422,3 +1422,69 @@ html.calm *, html.calm *::before, html.calm *::after { animation-duration: .01ms
 .title-screen { background-image: radial-gradient(circle at 78% 12%, rgba(255, 255, 255, .55), transparent 28%), var(--tex-grain), linear-gradient(#5ec8ff 0%, #a9e3ff 55%, #ffe8a3 100%); background-size: auto, 128px 128px, auto; }
 .toolbar { background-color: #6b4f3a; background-image: linear-gradient(180deg, rgba(0, 0, 0, .05), rgba(0, 0, 0, .22)), var(--tex-wood); background-size: auto, 256px 96px; background-position: 0 0, 0 -40px; }
 .actions { background-image: linear-gradient(rgba(255, 255, 255, .06), rgba(0, 0, 0, .14)), var(--tex-metal), var(--tex-grain); background-size: auto, 200px 40px, 128px 128px; }
+
+/* ---------- Animations supplémentaires (1.5.2) ---------- */
+/* Effets de décision (js/fx.js) */
+.fx-layer { position: absolute; inset: 0; pointer-events: none; z-index: 40; overflow: hidden; }
+.fx-coin { position: absolute; width: 26px; height: 26px; margin: -13px 0 0 -13px; color: var(--gold); background: #fff3c4; border: 2.5px solid var(--ink); border-radius: 50%; display: grid; place-items: center; animation: fxCoin .72s cubic-bezier(.5, 0, .75, .4) both; }
+.fx-coin .ic { width: 18px; height: 18px; }
+@keyframes fxCoin {
+  0% { transform: translate(0, 0) scale(.4); opacity: 0; }
+  15% { transform: translate(calc(var(--tx) * .05), var(--arc)) scale(1.15); opacity: 1; }
+  100% { transform: translate(var(--tx), var(--ty)) scale(.55); opacity: .9; }
+}
+.fx-spark { position: absolute; width: 9px; height: 9px; margin: -4.5px 0 0 -4.5px; border-radius: 2px; border: 1.5px solid var(--ink); animation: fxSpark .6s cubic-bezier(.2, .8, .4, 1) both; }
+@keyframes fxSpark {
+  0% { transform: translate(0, 0) rotate(0) scale(var(--s)); opacity: 1; }
+  100% { transform: translate(var(--tx), var(--ty)) rotate(200deg) scale(0); opacity: 0; }
+}
+.fx-hurt { box-shadow: inset 0 0 0 0 rgba(233, 79, 79, 0); animation: fxHurt .45s ease-out both; }
+@keyframes fxHurt { 0% { box-shadow: inset 0 0 70px 24px rgba(233, 79, 79, .65); } 100% { box-shadow: inset 0 0 0 0 rgba(233, 79, 79, 0); } }
+.fx-shield-pop { position: absolute; width: 30px; height: 30px; margin: -15px 0 0 -15px; color: #9fb4ff; animation: fxShield .6s ease-out both; }
+.fx-shield-pop .ic { width: 100%; height: 100%; }
+@keyframes fxShield { 0% { transform: scale(1); opacity: 1; } 40% { transform: scale(1.6) rotate(-12deg); opacity: 1; } 100% { transform: scale(.4) translateY(30px) rotate(30deg); opacity: 0; } }
+
+/* Le wagon roule : petit cahot régulier des rails, lumières qui grésillent, voyageurs du fond vivants */
+.scene-svg { animation: railJolt 2.8s ease-in-out infinite; transform-origin: 50% 100%; }
+@keyframes railJolt { 0%, 86%, 100% { transform: translateY(0) rotate(0); } 89% { transform: translateY(1.6px) rotate(.12deg); } 92% { transform: translateY(-.6px) rotate(-.08deg); } 95% { transform: translateY(1px) rotate(.05deg); } }
+.scene-svg .ceil-lights { animation: ceilFlicker 9s steps(1) infinite; }
+@keyframes ceilFlicker { 0%, 61%, 63%, 64.5%, 100% { opacity: 1; } 62%, 64% { opacity: .55; } }
+.scene-svg .seat-nod { transform-box: fill-box; transform-origin: 50% 90%; animation: seatNod 3.6s ease-in-out infinite; }
+@keyframes seatNod { 0%, 55%, 100% { transform: rotate(0); } 70% { transform: rotate(14deg) translateY(2px); } 80% { transform: rotate(10deg) translateY(1px); } 88% { transform: rotate(-3deg); } }
+.scene-svg .seat-look { transform-box: fill-box; transform-origin: 50% 90%; animation: seatLook 7s ease-in-out infinite; }
+@keyframes seatLook { 0%, 40%, 100% { transform: rotate(0); } 48%, 70% { transform: rotate(-8deg); } 78% { transform: rotate(0); } }
+
+/* Menus : les éléments entrent en cascade à l'ouverture d'un écran */
+.screen-in .map-scroll > *, .screen-in .page > *, .screen-in .shop-body > *, .screen-in .sp-grid > *, .screen-in .uni-grid > * { animation: cascadeIn .42s cubic-bezier(.2, 1.1, .4, 1) both; }
+.screen-in :is(.map-scroll, .page, .shop-body, .sp-grid, .uni-grid) > :nth-child(2) { animation-delay: .04s; }
+.screen-in :is(.map-scroll, .page, .shop-body, .sp-grid, .uni-grid) > :nth-child(3) { animation-delay: .08s; }
+.screen-in :is(.map-scroll, .page, .shop-body, .sp-grid, .uni-grid) > :nth-child(4) { animation-delay: .12s; }
+.screen-in :is(.map-scroll, .page, .shop-body, .sp-grid, .uni-grid) > :nth-child(5) { animation-delay: .16s; }
+.screen-in :is(.map-scroll, .page, .shop-body, .sp-grid, .uni-grid) > :nth-child(6) { animation-delay: .2s; }
+.screen-in :is(.map-scroll, .page, .shop-body, .sp-grid, .uni-grid) > :nth-child(n+7) { animation-delay: .24s; }
+@keyframes cascadeIn { from { opacity: 0; transform: translateY(16px) scale(.98); } }
+
+/* Reflet qui passe sur les boutons importants */
+.btn-xl, .daily-card:not(.done), .full-card .btn-primary, .city-full { position: relative; overflow: hidden; }
+.btn-xl::after, .daily-card:not(.done)::after, .full-card .btn-primary::after, .city-full::after {
+  content: ''; position: absolute; top: -20%; bottom: -20%; left: -60%; width: 40%; pointer-events: none;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, .55), transparent); transform: skewX(-18deg);
+  animation: shineSweep 3.8s ease-in-out infinite;
+}
+.daily-card:not(.done)::after { animation-delay: 1.2s; }
+@keyframes shineSweep { 0%, 62% { left: -60%; } 82%, 100% { left: 130%; } }
+
+/* Carte : boss qui frémissent, monuments qui flottent */
+.node.boss.open .node-n .ic { animation: bossTwitch 2.4s ease-in-out infinite; }
+@keyframes bossTwitch { 0%, 80%, 100% { transform: rotate(0); } 84% { transform: rotate(-12deg) scale(1.1); } 88% { transform: rotate(10deg) scale(1.1); } 92% { transform: rotate(0); } }
+.city:not(.city-locked) .city-landmark { animation: landmarkFloat 5s ease-in-out infinite; }
+@keyframes landmarkFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+.tb-avatar .pax-svg { animation: avatarPeek 6s ease-in-out infinite; transform-origin: 50% 100%; }
+@keyframes avatarPeek { 0%, 85%, 100% { transform: rotate(0); } 89% { transform: rotate(-8deg); } 93% { transform: rotate(6deg); } }
+
+/* Écran titre : nuages qui dérivent */
+.title-cloud { position: absolute; height: 26px; border-radius: 30px; background: #fff; opacity: .85; box-shadow: 18px -10px 0 4px #fff, 44px -2px 0 0 #fff; animation: cloudDrift linear infinite; }
+.title-cloud.c1 { top: 18%; width: 70px; animation-duration: 38s; animation-delay: -6s; }
+.title-cloud.c2 { top: 34%; width: 54px; opacity: .65; animation-duration: 52s; animation-delay: -30s; transform: scale(.8); }
+.title-cloud.c3 { top: 9%; width: 90px; opacity: .75; animation-duration: 64s; animation-delay: -44s; }
+@keyframes cloudDrift { from { left: -140px; } to { left: 110%; } }

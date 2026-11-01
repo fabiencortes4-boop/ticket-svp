@@ -528,9 +528,11 @@ function seated(x, flip, kind, tint) {
   if (kind === 'sleep') extra = `<text x="16" y="138" font-family="Lilita One, sans-serif" font-size="16" fill="${INK}" opacity=".55" class="zzz">z</text>`;
   return `<g transform="${tr}" opacity=".9">
     <path d="M-26 236 C-26 192 -14 176 0 176 C14 176 26 192 26 236Z" fill="${tint}" stroke="${INK}" stroke-width="3"/>
+    <g class="${kind === 'sleep' ? 'seat-nod' : 'seat-look'}">
     <circle cx="0" cy="156" r="17" fill="${G.shade(tint, 0.25)}" stroke="${INK}" stroke-width="3"/>
     <path d="M-17 152 C-16 134 16 134 17 152 C8 144 -8 144 -17 152Z" fill="${G.shade(tint, -0.25)}" stroke="${INK}" stroke-width="3" stroke-linejoin="round"/>
     ${kind === 'sleep' ? `<path d="M-8 158 Q-4 161 0 158 M4 158 Q8 161 12 158" stroke="${INK}" stroke-width="2.5" fill="none"/>` : `<circle cx="-5" cy="157" r="2.5" fill="${INK}"/><circle cx="7" cy="157" r="2.5" fill="${INK}"/>`}
+    </g>
     ${extra}</g>`;
 }
 
@@ -564,7 +566,7 @@ G.drawScene = (city) => {
   ${[24, 104, 176, 224, 296, 376].map((x) => `<circle cx="${x}" cy="146" r="1.6" fill="${INK}" opacity=".18"/><circle cx="${x}" cy="256" r="1.6" fill="${INK}" opacity=".18"/>`).join('')}
   ${[60, 140, 260, 340].map((x) => `<path d="M${x} 136 L${x} 262" stroke="${INK}" stroke-width="1.5" opacity=".08"/>`).join('')}
   <rect y="0" width="400" height="34" fill="${t.wall2}"/><path d="M0 34 L400 34" stroke="${INK}" stroke-width="2" opacity=".2"/>
-  <g>${[70, 200, 330].map((x) => `<rect x="${x - 40}" y="28" width="80" height="6" rx="3" fill="#fffef2" stroke="${INK}" stroke-width="1.5"/>`).join('')}</g>
+  <g class="ceil-lights">${[70, 200, 330].map((x) => `<rect x="${x - 40}" y="28" width="80" height="6" rx="3" fill="#fffef2" stroke="${INK}" stroke-width="1.5"/>`).join('')}</g>
   <rect x="0" y="34" width="400" height="60" fill="url(#${k}-glow)"/>
   <g><rect x="30" y="6" width="340" height="18" rx="9" fill="#fff" stroke="${INK}" stroke-width="2.5"/><path d="M${stations[0]} 15 L${stations[5]} 15" stroke="${city.lineColor}" stroke-width="5" stroke-linecap="round"/>${stations.map((x, i) => `<circle cx="${x}" cy="15" r="${i === 2 ? 5.5 : 4}" fill="${i === 2 ? '#fff' : city.lineColor}" stroke="${INK}" stroke-width="2"/>`).join('')}<circle cx="${stations[2]}" cy="15" r="2.2" fill="#e94f4f" class="blink"/></g>
   <rect x="14" y="34" width="372" height="108" rx="22" fill="${G.shade(t.wall2, -0.08)}" stroke="${INK}" stroke-width="3"/>
