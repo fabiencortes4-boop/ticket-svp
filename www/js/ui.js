@@ -4,6 +4,15 @@
 const UI = (G.UI = {});
 
 /* ---------- Socle : écrans et fenêtres ---------- */
+// Redessine l'écran de menu affiché (après l'achat du jeu complet, par exemple)
+UI.refresh = () => {
+  const cur = G.$('#screens') && G.$('#screens').lastElementChild;
+  const cls = cur ? cur.className : '';
+  if (/map-screen/.test(cls)) UI.map();
+  else if (/shop-screen/.test(cls)) UI.shop('full');
+  else if (/settings-screen/.test(cls)) UI.settings();
+};
+
 G.showScreen = (el) => {
   // Mise à jour reçue pendant un service : on l'applique au retour dans les menus
   if (G.Install && G.Install.pendingReload && !el.classList.contains('game-screen')) return location.reload();
@@ -215,6 +224,7 @@ UI.map = () => {
       const st = (nm ? s.nightmare.levels[g] : s.levels[g]) || 0;
       const open = G.isLevelUnlocked(g);
       const boss = i === G.LEVELS_PER_CITY - 1;
+      // Ville du jeu complet : cadenas cliquable qui présente l'offre
       const cur = open && !st;
       return `<button class="node ${boss ? 'boss' : ''} ${open ? 'open' : 'locked'} ${cur ? 'current' : ''}" data-level="${g}" ${open ? '' : 'disabled'} aria-label="Service ${i + 1}">
         <span class="node-n">${open ? (boss ? G.icon('skull') : i + 1) : G.icon('lock')}</span>
@@ -228,7 +238,7 @@ UI.map = () => {
         <div class="city-names"><h2>${city.name}</h2><p>${city.line}</p></div>
         <div class="city-stars">${G.icon(nm ? 'moon' : 'star')}<b>${nm ? Array.from({ length: G.LEVELS_PER_CITY }, (_, i) => s.nightmare.levels[first + i] || 0).reduce((a, b) => a + b, 0) : stars}</b>/30</div>
       </div>
-      ${unlocked ? `<div class="track"><div class="rail"></div>${nodes}</div>` : `<div class="city-lock">${G.icon('lock')}<span>Bats le boss de ${G.CITIES[ci - 1].name} pour débloquer cette ville</span></div>`}
+      ${unlocked ? `<div class="track"><div class="rail"></div>${nodes}</div>` : G.needsFull(first) ? `<button class="city-lock city-full" data-full>${G.icon('star')}<span><b>Jeu complet</b> · ${G.Store.priceLabel()}<br><small>Débloque cette ville et 8 autres</small></span></button>` : `<div class="city-lock">${G.icon('lock')}<span>Bats le boss de ${G.CITIES[ci - 1].name} pour débloquer cette ville</span></div>`}
     </section>`;
   }).join('');
   root.innerHTML = `${topBar()}
@@ -241,7 +251,7 @@ UI.map = () => {
         </button>
         <button class="chest-card ${chestReady ? 'ready' : ''}" data-chest>
           ${G.drawChest(false)}
-          <span>${chestReady ? 'Coffre du jour' : s.chest.extra ? 'Demain !' : 'Bonus pub'}</span>
+          <span>${chestReady ? 'Coffre du jour' : 'Demain !'}</span>
         </button>
       </div>
       ${nightmareSwitch(nm)}
@@ -264,15 +274,21 @@ UI.map = () => {
       G.Audio.sfx('click');
       G.Game.start(nm ? G.nightmareConfig(Number(n.dataset.level)) : G.levelConfig(Number(n.dataset.level)));
     }
+    if (ev.target.closest('[data-full]')) {
+      G.Audio.sfx('click');
+      return G.Store.offer();
+    }
     if (ev.target.closest('[data-nightmare]')) toggleNightmare();
     if (ev.target.closest('[data-chest]')) openChest();
     if (ev.target.closest('[data-event]')) {
       G.Audio.sfx('click');
+      if (!G.isFull()) return G.Store.offer('Les événements du mois font partie du jeu complet.');
       const evn = G.currentEvent();
       if (evn) G.Game.start(G.eventConfig(evn));
     }
     if (ev.target.closest('[data-weekly]')) {
       G.Audio.sfx('click');
+      if (!G.isFull()) return G.Store.offer('Le défi de la semaine fait partie du jeu complet.');
       if (!G.isLevelUnlocked(G.WEEKLY_UNLOCK)) return G.toast(`${G.icon('lock')} Le défi de la semaine s'ouvre après le service ${G.WEEKLY_UNLOCK} (Paris).`);
       G.Game.start(G.weeklyConfig());
     }
@@ -280,6 +296,7 @@ UI.map = () => {
     if (ev.target.closest('[data-code]')) codeModal();
     if (ev.target.closest('[data-endless]')) {
       G.Audio.sfx('click');
+      if (!G.isFull()) return G.Store.offer('La Ligne infinie fait partie du jeu complet.');
       if (!G.isEndlessUnlocked()) return G.toast(`${G.icon('lock')} Termine le service ${G.ENDLESS_UNLOCK + 1} du bus pour débloquer la Ligne infinie.`);
       G.Game.start(G.endlessConfig(1));
     }
@@ -294,8 +311,8 @@ function eventCard() {
   const done = G.save.eventDone && G.save.eventDone[ev.id + G.dayKey()];
   return `<button class="event-card ev-${ev.id}" data-event>
     <span class="ec-icon">${G.icon('star')}</span>
-    <span class="ec-txt"><b>${ev.name}</b><span>${done ? "Réussi aujourd'hui · rejouable" : "Événement · +5 tickets d'or par jour"}</span></span>
-    <span class="ec-go">${G.icon('play')}</span>
+    <span class="ec-txt"><b>${ev.name}</b><span>${!G.isFull() ? 'Jeu complet' : done ? "Réussi aujourd'hui · rejouable" : "Événement · +5 tickets d'or par jour"}</span></span>
+    <span class="ec-go">${G.icon(G.isFull() ? 'play' : 'lock')}</span>
   </button>`;
 }
 
@@ -344,6 +361,10 @@ function codeModal() {
       const score = parseInt(wk[2], 36);
       err.hidden = false;
       if (week !== G.weekKey()) return (err.textContent = 'Ce défi de la semaine est terminé. Demande à ton ami le code de cette semaine !');
+      if (!G.isFull()) {
+        m.close();
+        return G.Store.offer('Le défi de la semaine fait partie du jeu complet.');
+      }
       if (!G.isLevelUnlocked(G.WEEKLY_UNLOCK)) return (err.textContent = `Le défi de la semaine s'ouvre après le service ${G.WEEKLY_UNLOCK} (Paris).`);
       m.close();
       return G.Game.start(Object.assign(G.weeklyConfig(), { challengeScore: score }));
@@ -353,6 +374,10 @@ function codeModal() {
       err.hidden = false;
       err.textContent = 'Ce code ne ressemble pas à un code défi. Il doit avoir la forme 1F-3K9ZQ2-17C.';
       return;
+    }
+    if (G.needsFull(c.g)) {
+      m.close();
+      return G.Store.offer(`Ce défi se joue dans une ville du jeu complet (${G.levelConfig(c.g).label}).`);
     }
     if (!G.isLevelUnlocked(c.g)) {
       err.hidden = false;
@@ -426,23 +451,25 @@ function toggleNightmare() {
 }
 
 function weeklyCard() {
-  const on = G.isLevelUnlocked(G.WEEKLY_UNLOCK);
+  const full = G.isFull();
+  const on = full && G.isLevelUnlocked(G.WEEKLY_UNLOCK);
   const wk = G.weekKey();
   const w = G.save.weekly.week === wk ? G.save.weekly : null;
   const th = G.weeklyTheme(wk);
   return `<button class="endless-card weekly-card ${on ? '' : 'locked'}" data-weekly>
     <span class="ec-icon">${G.icon('trophy')}</span>
-    <span class="ec-txt"><b>Défi de la semaine · ${th.name}</b><span>${!on ? `S'ouvre après le service ${G.WEEKLY_UNLOCK}` : w ? `Ton record : ${G.fmt(w.best)} pts${w.rewarded ? '' : " · +3 tickets d'or à gagner"}` : "Nouveau ! +3 tickets d'or à la 1re réussite"}</span></span>
+    <span class="ec-txt"><b>Défi de la semaine · ${th.name}</b><span>${!full ? 'Jeu complet' : !on ? `S'ouvre après le service ${G.WEEKLY_UNLOCK}` : w ? `Ton record : ${G.fmt(w.best)} pts${w.rewarded ? '' : " · +3 tickets d'or à gagner"}` : "Nouveau ! +3 tickets d'or à la 1re réussite"}</span></span>
     <span class="ec-go">${G.icon(on ? 'play' : 'lock')}</span>
   </button>`;
 }
 
 function endlessCard() {
-  const on = G.isEndlessUnlocked();
+  const full = G.isFull();
+  const on = full && G.isEndlessUnlocked();
   const e = G.save.endless;
   return `<button class="endless-card ${on ? '' : 'locked'}" data-endless>
     <span class="ec-icon">∞</span>
-    <span class="ec-txt"><b>Ligne infinie</b><span>${on ? (e.runs ? `Record : ${G.fmt(e.best)} pts · station ${e.bestStation}` : 'Enchaîne les stations, choisis tes bonus') : `Termine le service ${G.ENDLESS_UNLOCK + 1} pour débloquer`}</span></span>
+    <span class="ec-txt"><b>Ligne infinie</b><span>${on ? (e.runs ? `Record : ${G.fmt(e.best)} pts · station ${e.bestStation}` : 'Enchaîne les stations, choisis tes bonus') : !full ? 'Jeu complet' : `Termine le service ${G.ENDLESS_UNLOCK + 1} pour débloquer`}</span></span>
     <span class="ec-go">${G.icon(on ? 'play' : 'lock')}</span>
   </button>`;
 }
@@ -455,14 +482,8 @@ function maybeLoginChest() {
 async function openChest() {
   const s = G.save;
   const today = G.dayKey();
-  let viaAd = false;
-  if (s.chest.last === today) {
-    if (s.chest.extra) return G.toast('Reviens demain pour un nouveau coffre.');
-    G.Audio.sfx('click');
-    const ok = await G.Ads.showRewarded('un deuxième coffre');
-    if (!ok) return;
-    viaAd = true;
-  }
+  const viaAd = false; // plus de 2e coffre contre une pub
+  if (s.chest.last === today) return G.toast('Reviens demain pour un nouveau coffre.');
   const r = G.rng(Number(today) * (viaAd ? 7 : 3));
   const coins = r.int(15, 40);
   const gold = r.chance(0.45) ? r.int(1, 2) : 0;
@@ -477,7 +498,6 @@ async function openChest() {
   G.Audio.sfx('open');
   const m = G.modal(`<div class="chest-open">${G.drawChest(true)}<h2>Coffre ouvert !</h2>
     <div class="loot"><span class="money coins">${G.icon('coin')}<b>+${coins}</b></span>${gold ? `<span class="money gold">${G.icon('gold')}<b>+${gold}</b></span>` : ''}</div>
-    ${viaAd ? '' : `<button class="btn btn-ad" data-more>${G.icon('ad')} Ouvrir un 2e coffre</button>`}
     <button class="btn btn-primary" data-ok>Super !</button></div>`, { cls: 'modal-chest' });
   G.$('[data-ok]', m.el).addEventListener('click', () => {
     m.close();
@@ -652,7 +672,7 @@ function previewLook(sp) {
 UI.shop = (tab = 'tools', sub = 'stamp') => {
   const s = G.save;
   const root = G.el('div', 'screen shop-screen');
-  const tabs = [['tools', 'Outils'], ['boosts', 'Bonus'], ['style', 'Style'], ['uniforms', 'Tenues'], ['gold', "Tickets d'or"]];
+  const tabs = [['tools', 'Outils'], ['boosts', 'Bonus'], ['style', 'Style'], ['uniforms', 'Tenues'], ['full', 'Jeu complet']];
   let body = '';
   if (tab === 'style') body = styleShop(sub);
   else if (tab === 'boosts') {
@@ -677,17 +697,18 @@ UI.shop = (tab = 'tools', sub = 'stamp') => {
       const owned = s.owned.includes(u.id) || (u.moons && G.nightmareMoons() >= u.moons);
       const eq = s.uniform === u.id;
       return `<div class="uni ${eq ? 'eq' : ''}"><div class="uni-portrait">${G.drawPerson(G.conductorLook(u.id), { photo: true, mood: eq ? 'happy' : 'neutral' })}</div><b>${u.name}</b>
-        ${eq ? `<span class="uni-state">${G.icon('check')} Porté</span>` : u.moons && !owned ? `<span class="cos-lock moon">${G.icon('moon')} ${u.moons} lunes rouges</span>` : owned ? `<button class="btn btn-small" data-wear="${u.id}">Porter</button>` : `<button class="btn btn-small btn-buy" data-buy-uni="${u.id}" ${s.gold < u.cost ? 'disabled' : ''}>${G.icon('gold')}${u.cost}</button>`}</div>`;
+        ${eq ? `<span class="uni-state">${G.icon('check')} Porté</span>` : !owned && u.cost > G.FREE_UNIFORM_MAX && !G.isFull() ? `<button class="cos-lock" data-full>${G.icon('star')} Jeu complet</button>` : u.moons && !owned ? `<span class="cos-lock moon">${G.icon('moon')} ${u.moons} lunes rouges</span>` : owned ? `<button class="btn btn-small" data-wear="${u.id}">Porter</button>` : `<button class="btn btn-small btn-buy" data-buy-uni="${u.id}" ${s.gold < u.cost ? 'disabled' : ''}>${G.icon('gold')}${u.cost}</button>`}</div>`;
     }).join('')}</div>`;
   } else {
-    const today = G.dayKey();
-    const used = s.goldAds.day === today ? s.goldAds.count : 0;
-    body = `
-      <div class="shop-item"><div class="si-icon ad">${G.icon('ad')}</div><div class="si-txt"><b>Ticket d'or gratuit</b><span>Regarde une courte pub · ${3 - used} restant${3 - used > 1 ? 's' : ''} aujourd'hui</span></div><button class="btn btn-ad btn-buy" data-gold-ad ${used >= 3 ? 'disabled' : ''}>+1 ${G.icon('gold')}</button></div>
-      <div class="shop-item"><div class="si-icon">${G.icon('gold')}</div><div class="si-txt"><b>Poignée de tickets d'or</b><span>Achat simulé dans cette version de démonstration</span></div><button class="btn btn-buy" data-iap="10">10 ${G.icon('gold')}<small>0,99 €</small></button></div>
-      <div class="shop-item"><div class="si-icon">${G.icon('chest')}</div><div class="si-txt"><b>Sac de tickets d'or</b><span>Achat simulé dans cette version de démonstration</span></div><button class="btn btn-buy" data-iap="60">60 ${G.icon('gold')}<small>4,99 €</small></button></div>
-      <div class="shop-item noads ${s.noAds ? 'owned' : ''}"><div class="si-icon">${G.icon('cross')}</div><div class="si-txt"><b>Sans pub</b><span>Supprime les pubs entre les services. Les pubs avec récompense restent au choix.</span></div><button class="btn btn-buy" data-noads ${s.noAds ? 'disabled' : ''}>${s.noAds ? 'Acheté' : '3,99 €'}</button></div>
-      <p class="shop-note">Les achats réels passeront par Google Play Billing. Ici, ils sont simulés pour tester le jeu.</p>`;
+    body = G.isFull()
+      ? `<div class="full-owned">${G.icon('check')}<b>${G.save.full === 'ancien' ? 'Jeu complet offert' : 'Jeu complet'}</b><span>${G.save.full === 'ancien' ? "Merci d'avoir joué aux premières versions : toutes les villes et tous les modes restent à toi." : 'Toutes les villes, tous les modes et toutes les tenues sont à toi. Merci !'}</span></div>`
+      : `<div class="full-card">
+          <b>Jeu complet</b>
+          <span>9 villes et leurs boss, Ligne infinie, défi de la semaine, événements mensuels, mode Cauchemar et toutes les tenues. Un seul achat, sans pub.</span>
+          <button class="btn btn-primary" data-full>Voir l'offre · ${G.Store.priceLabel()}</button>
+        </div>`;
+    body += `<button class="link-btn shop-restore" data-restore>Restaurer un achat</button>
+      <p class="shop-note">Pas de pub dans Ticket SVP ! : les tickets d'or se gagnent en jouant (missions, boss, coffre du jour, défis).</p>`;
   }
   root.innerHTML = `${topBar({ title: 'Boutique' })}
     <div class="page">
@@ -772,32 +793,11 @@ UI.shop = (tab = 'tools', sub = 'stamp') => {
       G.Audio.sfx('click');
       return UI.shop('uniforms');
     }
-    if (ev.target.closest('[data-gold-ad]')) {
-      const ok = await G.Ads.showRewarded("1 ticket d'or");
-      if (!ok) return;
-      const today = G.dayKey();
-      if (s.goldAds.day !== today) s.goldAds = { day: today, count: 0 };
-      s.goldAds.count++;
-      s.gold++;
-      G.persist();
-      G.Audio.sfx('coin');
-      return UI.shop('gold');
+    if (ev.target.closest('[data-full]')) {
+      G.Audio.sfx('click');
+      return G.Store.offer();
     }
-    const iap = ev.target.closest('[data-iap]');
-    if (iap) {
-      s.gold += Number(iap.dataset.iap);
-      G.persist();
-      G.Audio.sfx('buy');
-      G.toast(`${G.icon('check')} Achat simulé : +${iap.dataset.iap} tickets d'or`, 'good');
-      return UI.shop('gold');
-    }
-    const na = ev.target.closest('[data-noads]');
-    if (na && !na.disabled) {
-      s.noAds = true;
-      G.persist();
-      G.Audio.sfx('buy');
-      return UI.shop('gold');
-    }
+    if (ev.target.closest('[data-restore]')) return G.Store.restore();
   });
 };
 
@@ -839,22 +839,22 @@ const SAVE_STATUS = {
    l'appli Android (pas de nouvel onglet dans la WebView) ni dans la version claude.ai (fichier absent).
    Même texte que www/privacy.html, la page publique demandée par Google Play. */
 G.PRIVACY = [
-  ['En bref', "Ticket SVP ! ne demande ni compte, ni nom, ni adresse e-mail. Ta progression est enregistrée uniquement sur ton appareil."],
-  ['Données enregistrées sur ton appareil', "Étoiles, pièces, réglages, album et statistiques de jeu sont stockés localement. Ils ne quittent pas ton appareil, sauf pour les cas décrits ci-dessous. Désinstaller le jeu ou utiliser « Réinitialiser la progression » les efface."],
-  ['Statistiques anonymes (avec ton accord)', "Si tu acceptes, le jeu envoie des événements de jeu anonymes : niveau commencé, réussi ou abandonné, type d'erreur, pub regardée. Ils servent uniquement à équilibrer la difficulté. Ils sont traités par Google Firebase Analytics, qui peut associer un identifiant d'application aléatoire. Tu peux retirer ton accord à tout moment dans Réglages › Données."],
-  ['Publicité', "Le jeu est gratuit et financé par la publicité via Google AdMob. AdMob peut utiliser l'identifiant publicitaire de ton appareil et des cookies pour afficher et mesurer les annonces. Dans l'Union européenne, un formulaire de consentement Google s'affiche avant toute publicité personnalisée ; tu peux refuser et ne recevoir que des annonces non personnalisées. En savoir plus : policies.google.com/technologies/ads"],
-  ['Enfants', "Le jeu s'adresse à un public de 13 ans et plus. Il ne collecte pas sciemment de données sur les enfants de moins de 13 ans."],
-  ['Tes droits', "Conformément au RGPD, tu peux demander l'accès à tes données ou leur suppression. Comme le jeu ne connaît pas ton identité, le plus simple est de réinitialiser ta progression et de retirer ton accord dans les Réglages."],
+  ['En bref', "Ticket SVP ! ne contient aucune publicité et ne collecte aucune donnée personnelle. Pas de compte, pas de nom, pas d'adresse e-mail : ta progression reste sur ton appareil."],
+  ['Données enregistrées sur ton appareil', "Étoiles, pièces, réglages, album et statistiques de jeu sont stockés uniquement sur ton appareil. Personne d'autre n'y a accès. Désinstaller le jeu ou utiliser « Réinitialiser la progression » les efface."],
+  ['Code de sauvegarde et rapport de test', "Le code de sauvegarde et le rapport de test ne sont créés que si tu les demandes, et ne partent que si tu choisis toi-même de les copier et de les envoyer."],
+  ['Achat du jeu complet', "Le paiement est entièrement géré par Google Play. Le jeu reçoit seulement la confirmation que l'achat a eu lieu, jamais tes coordonnées ni tes informations de paiement."],
+  ['Enfants', "Le jeu ne collecte aucune donnée, y compris sur les enfants."],
+  ['Tes droits', "Comme aucune donnée ne quitte ton appareil, il n'y a rien à consulter ni à supprimer chez nous. Pour tout effacer, réinitialise ta progression ou désinstalle le jeu."],
 ];
 UI.privacy = () => {
   if (G.$('.modal-privacy')) return;
   const m = G.modal(`<div class="privacy"><h2>Politique de confidentialité</h2>
-    <p class="privacy-date">Ticket SVP ! · mise à jour le 28 octobre 2026</p>
+    <p class="privacy-date">Ticket SVP ! · mise à jour le 1er novembre 2026</p>
     ${G.PRIVACY.map(([h, t]) => `<section class="wn-block"><h3>${h}</h3><p>${t}</p></section>`).join('')}
     <button class="btn btn-primary" data-ok>Fermer</button></div>`, { cls: 'modal-privacy' });
   G.$('[data-ok]', m.el).addEventListener('click', () => m.close());
 };
-// Un seul écouteur pour tous les boutons « Politique de confidentialité » (réglages, fenêtre de consentement)
+// Un seul écouteur pour tous les boutons « Politique de confidentialité »
 document.addEventListener('click', (ev) => {
   if (!ev.target.closest || !ev.target.closest('[data-privacy]')) return;
   ev.preventDefault();
@@ -862,24 +862,6 @@ document.addEventListener('click', (ev) => {
   UI.privacy();
 });
 
-/* Premier lancement : consentement aux statistiques (RGPD) */
-UI.consent = () => {
-  const s = G.save;
-  if (s.settings.consentAsked || G.$('.modal')) return;
-  const m = G.modal(`<div class="consent"><h2>Aide-nous à améliorer le jeu</h2>
-    <p>Avec ton accord, Ticket SVP ! envoie des statistiques <b>anonymes</b> : niveaux réussis ou ratés, erreurs les plus fréquentes, pubs regardées. Aucun nom, aucun contact, aucun identifiant.</p>
-    <p class="consent-small">Tu peux changer d'avis à tout moment dans les Réglages. <button class="link-btn" data-privacy>Politique de confidentialité</button></p>
-    <button class="btn btn-primary" data-yes>J'accepte</button><button class="btn btn-ghost" data-no>Non merci</button></div>`, { cls: 'modal-consent', dismissable: false });
-  const answer = (yes) => {
-    s.settings.analytics = yes;
-    s.settings.consentAsked = true;
-    G.persist();
-    G.Audio.sfx('click');
-    m.close();
-  };
-  G.$('[data-yes]', m.el).addEventListener('click', () => answer(true));
-  G.$('[data-no]', m.el).addEventListener('click', () => answer(false));
-};
 
 UI.settings = () => {
   const s = G.save;
@@ -903,12 +885,11 @@ UI.settings = () => {
       <h3 class="set-h">Sauvegarde</h3>
       <div class="set-group">
         <div class="set-row set-info ${saveState() === 'nostore' ? 'danger' : ''}">${G.icon(saveState() === 'online' ? 'check' : 'lock')}<span>${SAVE_STATUS[saveState()] || SAVE_STATUS.local}</span></div>
-        <button class="set-row" data-export>${G.icon('share')}<span>Copier mon code de sauvegarde<small>Pour reprendre ta partie sur un autre appareil</small></span>${G.icon('back', 'flip')}</button>
+        <button class="set-row" data-export>${G.icon('share')}<span>Copier mon code de sauvegarde<small>${window.cordova ? "Avant de désinstaller l'APK de test pour la version Play Store, ou pour changer de téléphone" : 'Pour reprendre ta partie sur un autre appareil'}</small></span>${G.icon('back', 'flip')}</button>
         <button class="set-row" data-import>${G.icon('chest')}<span>Charger un code de sauvegarde</span>${G.icon('back', 'flip')}</button>
       </div>
       <h3 class="set-h">Données</h3>
       <div class="set-group">
-        <button class="set-row" data-tg="analytics">${G.icon('chart')}<span>Statistiques anonymes<small>Aide à équilibrer le jeu, sans aucun identifiant</small></span><i class="sw ${s.settings.analytics ? 'on' : ''}"></i></button>
         <button class="set-row" data-report>${G.icon('share')}<span>Rapport de test<small>À copier et envoyer au développeur</small></span>${G.icon('back', 'flip')}</button>
         ${G.Install.canOffer() ? `<button class="set-row" data-install>${G.icon('chest')}<span>Installer l'appli<small>Icône sur l'écran d'accueil, jeu hors ligne</small></span>${G.icon('back', 'flip')}</button>` : ''}
         ${G.Tester.on() ? `<button class="set-row" data-tester-off>${G.icon('star')}<span>Quitter le mode testeur<small>Les services réussis restent acquis</small></span>${G.icon('back', 'flip')}</button>` : ''}
@@ -925,7 +906,7 @@ UI.settings = () => {
         <button class="set-row" data-howto>${G.icon('hand')}<span>Comment jouer</span>${G.icon('back', 'flip')}</button>
         <button class="set-row danger" data-reset>${G.icon('cross')}<span>Réinitialiser la progression</span></button>
       </div>
-      <p class="credits">Ticket SVP ! v${G.VERSION}<br>Personnages, décors et musique 8 bits générés par le code : 100 % originaux et libres de droits.<br>Polices Lilita One, Nunito et Press Start 2P sous licence SIL OFL.<br>${G.Ads.native ? 'Publicités : Google AdMob.' : 'Les publicités et achats de cette version sont simulés.'}</p>
+      <p class="credits">Ticket SVP ! v${G.VERSION}<br>Personnages, décors et musique 8 bits générés par le code : 100 % originaux et libres de droits.<br>Polices Lilita One, Nunito et Press Start 2P sous licence SIL OFL.<br>Aucune publicité, aucune donnée collectée.${G.Store.native ? '' : " Dans cette version de test, l'achat du jeu complet est simulé."}</p>
     </div>
     ${bottomNav('settings')}`;
   G.showScreen(root);
@@ -940,7 +921,6 @@ UI.settings = () => {
       G.Audio.sfx('click');
       G.$('.sw', tg).classList.toggle('on', s.settings[k]);
       if (k === 'vibe') G.vibrate(40);
-      if (k === 'analytics') s.settings.consentAsked = true;
       G.applyAccess();
       G.persist();
     }
@@ -1026,7 +1006,7 @@ function howTo() {
 UI.results = (r) => {
   const { cfg } = r;
   const nextG = cfg.g + 1;
-  const canNext = !cfg.daily && !cfg.event && !cfg.weekly && cfg.challengeScore == null && r.success && nextG < G.TOTAL_LEVELS && (!cfg.nightmare || G.isLevelUnlocked(nextG));
+  const canNext = !cfg.daily && !cfg.event && !cfg.weekly && cfg.challengeScore == null && r.success && nextG < G.TOTAL_LEVELS && !G.needsFull(nextG) && (!cfg.nightmare || G.isLevelUnlocked(nextG));
   const title = cfg.nightmare ? (r.success ? (r.stars === 3 ? 'Cauchemar maîtrisé !' : 'Tu as survécu…') : 'Le cauchemar continue…') : cfg.daily ? (r.success ? 'Défi terminé !' : 'Défi raté') : r.success ? (r.stars === 3 ? 'Service parfait !' : 'Service terminé !') : 'Service raté';
   const m = G.modal(`
     <div class="results ${r.success ? 'win' : 'lose'}${cfg.nightmare ? ' nm' : ''}">
@@ -1055,9 +1035,10 @@ UI.results = (r) => {
       ${r.challenge ? `<div class="res-ach"><b>${G.icon('trophy')} ${r.challenge.beat ? 'Défi réussi : tu bats ton ami !' : 'Défi raté'}</b><span>Score à battre : ${G.fmt(r.challenge.target)}</span></div>` : ''}
       ${r.story ? `<div class="letter"><div class="letter-head">${G.icon('talk')} Lettre du chef</div><p>${r.story}</p></div>` : ''}
       <div class="res-coins"><span class="money coins">${G.icon('coin')}<b data-rcoins>+${G.fmt(r.coins)}</b></span>
-        ${r.coins > 0 ? `<button class="btn btn-ad btn-small" data-double>${G.icon('ad')} Doubler</button>` : ''}</div>
+        ${r.coins > 0 ? `<button class="btn btn-gold btn-small" data-double ${G.save.gold < 1 ? 'disabled' : ''}>Doubler · 1 ${G.icon('gold')}</button>` : ''}</div>
       ${r.challengeCode && r.success ? `<button class="btn btn-ghost btn-challenge" data-challenge>${G.icon('share')} Défier un ami sur ce service</button><p class="share-preview" data-cprev hidden></p>` : ''}
       <div class="res-actions">
+        ${!cfg.nightmare && !cfg.daily && r.success && nextG === G.FREE_LEVELS && G.needsFull(nextG) ? `<button class="btn btn-primary" data-full>${G.icon('star')} Continuer : jeu complet</button>` : ''}
         ${cfg.daily ? `<button class="btn btn-primary" data-daily>${G.icon('share')} Voir et partager</button>` : canNext ? `<button class="btn btn-primary" data-next>${G.icon('play')} Service suivant</button>` : ''}
         ${cfg.daily ? '' : `<button class="btn ${canNext ? 'btn-ghost' : 'btn-primary'}" data-retry>Rejouer</button>`}
         <button class="btn btn-ghost" data-map>${G.icon('map')} Carte</button>
@@ -1066,15 +1047,16 @@ UI.results = (r) => {
   G.countTo(G.$('[data-rscore]', m.el), 0, r.score, 900, (n) => String(Math.round(n)));
   for (let k = 1; k <= r.stars; k++) setTimeout(() => G.Audio.sfx('star'), 300 + k * 250);
   if (r.stars === 3) confetti(m.el);
-  const leave = async (fn) => {
+  const leave = (fn) => {
     m.close();
-    if (!cfg.daily) await G.Ads.maybeInterstitial(cfg.g);
     fn();
   };
+  const full = G.$('[data-full]', m.el);
+  if (full) full.addEventListener('click', () => G.Store.offer());
   const dbl = G.$('[data-double]', m.el);
   if (dbl) dbl.addEventListener('click', async () => {
-    const ok = await G.Ads.showRewarded(`+${r.coins} amendes`);
-    if (!ok) return;
+    if (G.save.gold < 1) return; // doubler coûte 1 ticket d'or (plus de pub)
+    G.save.gold--;
     G.save.coins += r.coins;
     G.persist();
     G.$('[data-rcoins]', m.el).textContent = `+${G.fmt(r.coins * 2)}`;
@@ -1126,7 +1108,7 @@ UI.endlessResults = (r) => {
       ${perkNames.length ? `<div class="end-perks"><b>Bonus choisis</b><div>${perkNames.map((p) => `<span>${G.icon(p.icon)}${p.name}</span>`).join('')}</div></div>` : ''}
       ${r.rankUp ? `<div class="res-rank">${G.icon('trophy')} Promotion : <b>${G.rankOf(G.save.xp).name}</b></div>` : ''}
       <div class="res-coins"><span class="money coins">${G.icon('coin')}<b data-rcoins>+${G.fmt(r.coins)}</b></span>
-        ${r.coins > 0 ? `<button class="btn btn-ad btn-small" data-double>${G.icon('ad')} Doubler</button>` : ''}</div>
+        ${r.coins > 0 ? `<button class="btn btn-gold btn-small" data-double ${G.save.gold < 1 ? 'disabled' : ''}>Doubler · 1 ${G.icon('gold')}</button>` : ''}</div>
       <div class="res-actions">
         <button class="btn btn-primary" data-retry>${G.icon('play')} Rejouer</button>
         <button class="btn btn-ghost" data-map>${G.icon('map')} Carte</button>
@@ -1134,15 +1116,14 @@ UI.endlessResults = (r) => {
     </div>`, { cls: 'modal-results', dismissable: false });
   G.countTo(G.$('[data-rscore]', m.el), 0, r.score, 900, (n) => String(Math.round(n)));
   if (r.record) confetti(m.el);
-  const leave = async (fn) => {
+  const leave = (fn) => {
     m.close();
-    await G.Ads.maybeInterstitial(r.cfg.g);
     fn();
   };
   const dbl = G.$('[data-double]', m.el);
   if (dbl) dbl.addEventListener('click', async () => {
-    const ok = await G.Ads.showRewarded(`+${r.coins} amendes`);
-    if (!ok) return;
+    if (G.save.gold < 1) return; // doubler coûte 1 ticket d'or (plus de pub)
+    G.save.gold--;
     G.save.coins += r.coins;
     G.persist();
     G.$('[data-rcoins]', m.el).textContent = `+${G.fmt(r.coins * 2)}`;

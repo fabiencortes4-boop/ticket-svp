@@ -426,6 +426,7 @@ G.dailyConfig = () => {
 
 G.isLevelUnlocked = (g) => {
   if (g === 0 || G.save.tester) return true;
+  if (G.needsFull && G.needsFull(g)) return false; // ville du jeu complet
   return (G.save.levels[g - 1] || 0) > 0;
 };
 G.cityStars = (ci) => {

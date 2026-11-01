@@ -1,14 +1,12 @@
 /* Ticket SVP ! — mesures d'audience anonymes.
    Les événements sont toujours comptés sur l'appareil (aucun identifiant, rien ne sort du téléphone) :
    ils servent au rapport que les testeurs peuvent copier depuis les Réglages.
-   Ils ne partent vers un service (Firebase Analytics via Capacitor, ou ENDPOINT) que si le joueur a accepté. */
+   Depuis la version 1.5, plus aucun envoi : rien ne quitte l'appareil, sauf si le joueur copie lui-même son rapport. */
 'use strict';
 
 G.Analytics = (() => {
   const KEY = 'ticketsvp-analytics-v1';
   const MAX_LOG = 400;
-  // URL de votre propre serveur de collecte (POST JSON). null = aucun envoi hors Firebase.
-  const ENDPOINT = null;
   let data = null;
   let sessionStart = Date.now();
   let current = null; // service en cours
@@ -20,7 +18,7 @@ G.Analytics = (() => {
       data = null;
     }
     if (!data || typeof data !== 'object') data = {};
-    data = Object.assign({ sessions: 0, playMs: 0, log: [], levels: {}, mistakes: {}, screens: {}, ads: {}, quits: {} }, data);
+    data = Object.assign({ sessions: 0, playMs: 0, log: [], levels: {}, mistakes: {}, screens: {}, store: {}, quits: {} }, data);
   }
   function persist() {
     try {
@@ -29,22 +27,13 @@ G.Analytics = (() => {
       /* stockage plein ou indisponible */
     }
   }
-  const consent = () => !!(G.save && G.save.settings.analytics);
   const inc = (obj, k, n = 1) => { obj[k] = (obj[k] || 0) + n; };
-
-  function send(name, props) {
-    if (!consent()) return;
-    const fb = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.FirebaseAnalytics;
-    if (fb && fb.logEvent) fb.logEvent({ name, params: props }).catch(() => {});
-    if (ENDPOINT && navigator.sendBeacon) navigator.sendBeacon(ENDPOINT, JSON.stringify({ name, props, t: Date.now(), v: G.VERSION }));
-  }
 
   function track(name, props = {}) {
     if (!data) load();
     data.log.push([Date.now(), name, props]);
     if (data.log.length > MAX_LOG) data.log.splice(0, data.log.length - MAX_LOG);
     persist();
-    send(name, props);
   }
 
   function levelKey(cfg) {
@@ -123,9 +112,11 @@ G.Analytics = (() => {
       current = null;
       track('level_abandon', { level: k, at: idx, how: 'menu' });
     },
-    ad(kind, placement, ok) {
-      inc(data.ads, kind + (ok === false ? '_skipped' : ''));
-      track('ad_' + kind, { placement: placement || '', ok: ok !== false });
+    /* Événement libre (offre du jeu complet vue, achat…), compté pour le rapport de test */
+    event(name, props = {}) {
+      if (!data) load();
+      inc(data.store, name);
+      track(name, props);
     },
     /* Rapport lisible que le testeur peut copier-coller */
     report() {
@@ -143,8 +134,8 @@ G.Analytics = (() => {
       }
       const mk = Object.entries(data.mistakes).filter(([k]) => !k.includes(':')).sort((a, b) => b[1] - a[1]);
       if (mk.length) lines.push('', 'Erreurs par type : ' + mk.map(([k, n]) => `${k} ${n}`).join(', '));
-      const ad = Object.entries(data.ads);
-      if (ad.length) lines.push('Pubs : ' + ad.map(([k, n]) => `${k} ${n}`).join(', '));
+      const so = Object.entries(data.store);
+      if (so.length) lines.push('Jeu complet : ' + so.map(([k, n]) => `${k} ${n}`).join(', ') + (G.isFull() ? ' · ouvert' : ''));
       const q = Object.entries(data.quits);
       if (q.length) lines.push('Abandons : ' + q.map(([k, n]) => `${k} ${n}`).join(', '));
       lines.push('Appareil : ' + `${window.innerWidth}×${window.innerHeight}` + (G.Install.standalone() ? ' · appli installée' : '') + (G.Tester.on() ? ' · mode testeur' : ''));

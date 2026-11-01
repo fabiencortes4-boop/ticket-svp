@@ -49,7 +49,7 @@ async function render(page, w, h, html, file) {
 
   // Captures d'écran 1080×1920 (9:16) pour la fiche Play Store
   const shots = await b.newPage({ viewport: { width: 360, height: 640 }, deviceScaleFactor: 3 });
-  const save = { lang: LANG, settings: { music: true, sfx: true, vibe: true, consentAsked: true }, v: 1, coins: 860, gold: 24, xp: 2300, levels: {}, tools: { watch: 1, uv: 2, whistle: 1, badge: 0 }, owned: ['classic'], uniform: 'classic', album: {}, tutorialDone: true };
+  const save = { lang: LANG, seenVersion: '99.0.0', settings: { music: true, sfx: true, vibe: true, consentAsked: true }, v: 1, coins: 860, gold: 24, xp: 2300, levels: {}, tools: { watch: 1, uv: 2, whistle: 1, badge: 0 }, owned: ['classic'], uniform: 'classic', album: {}, tutorialDone: true };
   for (let i = 0; i < 16; i++) save.levels[i] = 3 - (i % 2);
   ['mime', 'dogs', 'ghost', 'tourist', 'timetraveler', 'grandma', 'pirate', 'baby', 'vampire', 'robot', 'alien'].forEach((k) => { save.album[k] = 1; });
   await shots.addInitScript((s) => localStorage.setItem('ticketsvp.save.v1', s), JSON.stringify(save));

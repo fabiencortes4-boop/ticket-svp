@@ -6,10 +6,11 @@
   G.i18nData();
   G.i18nStart();
   G.Tester.init();
+  G.Store.grandfather();
   G.Install.init();
   G.applyAccess();
   G.Analytics.init();
-  G.Ads.init();
+  G.Store.init();
   const root = G.$('#game-root');
   root.innerHTML = '<div id="screens"></div><div id="toasts" aria-live="polite"></div>';
   // Le premier toucher n'importe où débloque le son (règle des navigateurs mobiles)
@@ -30,5 +31,4 @@
   }, { passive: false });
   G.UI.title();
   G.Cloud.init();
-  if (!G.save.settings.consentAsked) setTimeout(G.UI.consent, 600);
 })();

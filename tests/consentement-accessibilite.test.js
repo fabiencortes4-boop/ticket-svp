@@ -11,11 +11,8 @@ for (let i = 0; i < 14; i++) save.levels[i] = 2;
   await p.addInitScript((s) => { if (!localStorage.getItem('ticketsvp.save.v1')) localStorage.setItem('ticketsvp.save.v1', s); }, JSON.stringify(save));
   await p.goto('http://localhost:8765/index.html');
   await p.waitForTimeout(1200);
-  const consent = await p.$('.modal-consent');
-  console.log('consent modal shown:', !!consent);
-  await p.screenshot({ path: 'shots/80-consent.png' });
-  await p.click('.modal-consent [data-yes]'); await p.waitForTimeout(400);
-  console.log('analytics setting:', await p.evaluate(() => G.save.settings.analytics));
+  // Depuis la 1.5 : aucune donnée envoyée, donc plus de fenêtre de consentement
+  if (await p.$('.modal-consent')) errs.push('fenêtre de consentement encore affichée');
   console.log('fonts:', await p.evaluate(async () => { await document.fonts.ready; return ['Lilita One', 'Nunito', 'Press Start 2P'].map((f) => document.fonts.check(`16px "${f}"`)); }));
   await p.click('[data-play]'); await p.waitForTimeout(500);
   await p.click('[data-nav="settings"]'); await p.waitForTimeout(400);
@@ -52,9 +49,8 @@ for (let i = 0; i < 14; i++) save.levels[i] = 2;
   await p.evaluate(() => G.UI.album()); await p.waitForTimeout(400);
   await p.screenshot({ path: 'shots/85-album.png' });
   console.log('month special:', await p.evaluate(() => G.monthSpecial().name));
-  // reload : pas de 2e demande de consentement
   await p.reload(); await p.waitForTimeout(1200);
-  console.log('consent again:', !!(await p.$('.modal-consent')));
+  if (await p.$('.modal-consent')) errs.push('consentement après rechargement');
   console.log('remote requests:', remote);
   console.log(errs.length ? errs : 'NO ERRORS');
   await b.close();

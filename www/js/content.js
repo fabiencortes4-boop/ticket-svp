@@ -303,6 +303,12 @@ G.cosOwned = (cat, id) => {
 
 /* ---------- Nouveautés de chaque version (écran affiché une fois après la mise à jour) ---------- */
 G.WHATS_NEW = [
+  { v: '1.5.0', title: 'Version 1.5 : plus aucune pub', items: [
+    ['shield', "Fini les publicités : l'appel, la caméra et les bonus sont gratuits ou se paient en tickets d'or gagnés en jouant."],
+    ['star', "Merci d'avoir joué aux premières versions : le jeu complet t'est offert, toutes tes villes et tes modes restent à toi."],
+    ['lock', 'Aucune donnée ne quitte plus ton téléphone : les statistiques anonymes ont été supprimées.'],
+    ['share', "Tu passes de l'APK de test à la version Play Store ? Copie d'abord ton code de sauvegarde (Réglages › Sauvegarde)."],
+  ] },
   { v: '1.4.0', title: 'Version 1.4 : le jeu parle votre langue', items: [
     ['talk', 'Le jeu est disponible en anglais, espagnol et allemand (Réglages › Langue).'],
     ['music', 'Musiques retravaillées : un vrai son de console 8 bits, mêmes mélodies.'],

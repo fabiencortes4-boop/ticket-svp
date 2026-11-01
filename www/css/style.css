@@ -1348,3 +1348,23 @@ html.calm *, html.calm *::before, html.calm *::after { animation-duration: .01ms
 .privacy .wn-block p { margin: 0; font-size: 14px; }
 .privacy .btn { width: 100%; margin-top: 6px; }
 .link-btn { background: none; border: 0; padding: 0; font: inherit; color: var(--blue, #3a86ff); text-decoration: underline; cursor: pointer; }
+
+/* Jeu complet (achat unique, sans pub) */
+.btn-gold { background: var(--gold, #ffd23f); color: var(--ink); }
+.btn-gold .ic { width: 16px; height: 16px; vertical-align: -3px; }
+.city-full { width: 100%; border: 3px dashed var(--ink); background: rgba(255, 210, 63, .25); cursor: pointer; font: inherit; color: inherit; }
+.city-full .ic { color: var(--violet); }
+.full-offer { text-align: center; }
+.full-offer .fo-why { font-weight: 800; }
+.fo-list { list-style: none; margin: 10px 0 14px; padding: 0; display: flex; flex-direction: column; gap: 8px; text-align: left; }
+.fo-list li { display: flex; gap: 10px; align-items: flex-start; font-size: 14px; line-height: 1.35; }
+.fo-list li .ic { width: 22px; height: 22px; flex: none; color: var(--violet-2, #8338ec); }
+.full-offer .btn { width: 100%; margin-top: 6px; }
+.fo-restore, .shop-restore { display: block; margin: 12px auto 0; font-size: 13px; }
+.full-card, .full-owned { display: flex; flex-direction: column; gap: 8px; padding: 14px; border: 3px solid var(--ink); border-radius: 16px; background: var(--paper-2, #eef2fb); }
+.full-card b, .full-owned b { font-family: var(--f-display); font-weight: 400; font-size: 22px; }
+.full-card span, .full-owned span { font-size: 14px; line-height: 1.4; }
+.full-owned .ic { width: 30px; height: 30px; color: var(--green, #2ec4b6); }
+.uni .cos-lock[data-full] { border: 0; font: inherit; cursor: pointer; }
+.sim-buy { text-align: center; }
+.sim-buy .btn { width: 100%; margin-top: 6px; }

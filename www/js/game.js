@@ -258,9 +258,8 @@ function updateTools() {
   wh.classList.toggle('locked', whLocked || !!st.cfg.nightmare);
   G.$('[data-whistle]', r).innerHTML = st.cfg.nightmare ? G.icon('moon') : whLocked ? G.icon('lock') : st.whistleLeft;
   wh.disabled = !!st.cfg.nightmare || (!whLocked && st.whistleLeft <= 0);
-  G.$('[data-hint]', r).innerHTML = st.freeHints > 0 ? st.freeHints : st.hintsLeft > 0 ? G.icon('ad') : '0';
+  G.$('[data-hint]', r).innerHTML = st.freeHints + st.hintsLeft;
   hi.disabled = st.hintsLeft <= 0 && st.freeHints <= 0;
-  hi.classList.toggle('tool-ad', st.freeHints <= 0);
   const ask = G.$('[data-act="ask"]', r);
   const askOn = G.askAvailable(st.cfg);
   ask.classList.toggle('locked', !askOn);
@@ -361,7 +360,7 @@ function briefing() {
       ${cfg.daily ? '<p class="brief-note">Un seul essai par jour, les mêmes passagers pour tout le monde.</p>' : ''}
       ${boostPicker(cfg)}
       <div class="brief-actions">
-        ${cfg.boss && !cfg.daily ? `<button class="btn btn-ad" data-renfort>${G.icon('ad')} Renfort : +1 réputation</button>` : ''}
+        ${cfg.boss && !cfg.daily ? `<button class="btn btn-gold" data-renfort ${G.save.gold < 1 ? 'disabled' : ''}>Renfort : +1 réputation · 1 ${G.icon('gold')}</button>` : ''}
         <button class="btn btn-primary" data-go>${G.icon('play')} Commencer le service</button>
         ${cfg.daily ? '' : '<button class="btn btn-ghost" data-quit>Retour à la carte</button>'}
       </div>
@@ -371,8 +370,11 @@ function briefing() {
   if (ren) {
     ren.addEventListener('click', async () => {
       G.Audio.sfx('click');
-      const ok = await G.Ads.showRewarded('+1 réputation pour ce boss');
-      if (ok && st) {
+      // Plus de pub : le renfort coûte 1 ticket d'or, gagné en jouant
+      if (G.save.gold < 1 || !st) return;
+      G.save.gold--;
+      G.persist();
+      {
         st.rep++;
         st.maxRep++;
         updateHud();
@@ -809,12 +811,7 @@ async function useHint() {
   if (st.freeHints > 0) st.freeHints--;
   else {
     if (st.hintsLeft <= 0) return;
-    st.paused = true;
-    const ok = await G.Ads.showRewarded('revoir la caméra de surveillance');
-    if (!st) return;
-    st.paused = false;
-    if (!ok) return;
-    st.hintsLeft--;
+    st.hintsLeft--; // caméra : 2 regards par service, gratuits (plus de pub)
   }
   updateTools();
   const p = curP();
@@ -1109,12 +1106,12 @@ function gameOver() {
       <div class="go-icon">${G.icon('shield')}</div>
       <h2>Réputation à zéro !</h2>
       <p>Trop de plaintes et de fraudeurs oubliés. La direction veut te voir.</p>
-      <button class="btn btn-ad" data-appeal>${G.icon('ad')} Faire appel et continuer</button>
-      <p class="go-note">Une courte pub te rend 1 bouclier, une seule fois par ${st.cfg.endless ? 'partie' : 'service'}.</p>
+      <button class="btn btn-primary" data-appeal>${G.icon('shield')} Faire appel et continuer</button>
+      <p class="go-note">L'appel te rend 1 bouclier, une seule fois par ${st.cfg.endless ? 'partie' : 'service'}.</p>
       <button class="btn btn-ghost" data-end>${st.cfg.endless ? 'Terminer la partie' : 'Terminer le service'}</button>
     </div>`, { cls: 'modal-go', dismissable: false });
   G.$('[data-appeal]', m.el).addEventListener('click', async () => {
-    const ok = await G.Ads.showRewarded('faire appel et continuer');
+    const ok = true; // appel gratuit, une fois par service
     m.close();
     if (!st) return;
     if (ok) {

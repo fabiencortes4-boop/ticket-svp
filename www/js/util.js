@@ -3,7 +3,7 @@
 
 const G = (window.G = window.G || {});
 
-G.VERSION = '1.4.2';
+G.VERSION = '1.5.0';
 
 /* Filet de sécurité : si le jeu plante avant d'avoir affiché la carte (fichiers de deux versions mélangés
    dans le cache, par exemple), on vide le cache hors ligne et on recharge, une seule fois par session. */
@@ -104,7 +104,8 @@ G.defaultSave = () => ({
   daily: { last: null, streak: 0, result: null },
   chest: { last: null, extra: false },
   goldAds: { day: null, count: 0 },
-  noAds: false,
+  full: false, // jeu complet : true (acheté) ou 'ancien' (joueur d'avant la 1.5, offert)
+  fullChecked: false,
   stats: { caught: 0, checked: 0, shifts: 0, specials: 0, bestCombo: 0, questionCatches: 0, coinsEarned: 0 },
   seenRules: {},
   lastInterstitial: 0,

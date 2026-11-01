@@ -30,14 +30,11 @@ const { chromium } = require('playwright');
   await p.screenshot({ path: 'shots/52-daily.png' });
   const clip = await p.evaluate(() => navigator.clipboard.readText().catch(e => 'ERR ' + e));
   console.log('CLIPBOARD:\n' + clip);
-  // rewarded ad flow in shop
+  // onglet Jeu complet de la boutique (plus de pub)
   await p.click('[data-nav="shop"]'); await p.waitForTimeout(300);
-  await p.click('[data-tab="gold"]'); await p.waitForTimeout(300);
-  await p.click('[data-gold-ad]'); await p.waitForTimeout(1500);
-  await p.screenshot({ path: 'shots/53-ad.png' });
-  await p.waitForTimeout(4500);
-  await p.click('.ad-close'); await p.waitForTimeout(500);
-  console.log('gold after ad', await p.evaluate(() => G.save.gold));
+  await p.click('[data-tab="full"]'); await p.waitForTimeout(300);
+  await p.screenshot({ path: 'shots/53-jeu-complet.png' });
+  if (await p.$('[data-gold-ad], .ad-close')) errs.push('pub encore présente dans la boutique');
   await p.click('[data-nav="map"]'); await p.waitForTimeout(400);
   await p.screenshot({ path: 'shots/54-map.png' });
   console.log(errs.join('\n') || 'NO ERRORS');

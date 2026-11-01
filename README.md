@@ -1,11 +1,11 @@
 # Ticket SVP !
 
-Jeu mobile en français, anglais, espagnol et allemand : tu es contrôleur de métro et tu as quelques secondes par passager pour démasquer les fraudeurs. Il est gratuit et se finance par la publicité, selon le document de conception.
+Jeu mobile en français, anglais, espagnol et allemand : tu es contrôleur de métro et tu as quelques secondes par passager pour démasquer les fraudeurs. Essai gratuit (le bus et Paris), puis le jeu complet en un seul achat, sans aucune publicité.
 
 - **100 % original et libre de droits** : personnages, décors, icônes et musique sont générés par le code (SVG + synthé 8 bits WebAudio). Aucun fichier image ni son externe. Les compagnies de transport sont inventées (Métropolitain, Crown Rail, Sakura Metro…).
 - **Sans dépendance** : HTML, CSS et JavaScript, prêt à être empaqueté en application Android avec Capacitor.
 
-## Contenu de la version 1.4
+## Contenu de la version 1.5
 
 | Élément | Détail |
 | --- | --- |
@@ -26,14 +26,14 @@ Jeu mobile en français, anglais, espagnol et allemand : tu es contrôleur de m�
 | Accessibilité | Taille du texte (3 niveaux), couleurs pour daltoniens (bleu et orange), chrono plus lent (+50 %), animations réduites |
 | Langues | Français, anglais, espagnol et allemand. La langue du téléphone est choisie au premier lancement, puis se change dans Réglages › Langue |
 | Nouveautés | Après une mise à jour, une fenêtre résume ce qui a changé (une seule fois par version) |
-| Mesures | Statistiques anonymes avec consentement au premier lancement : réussites et abandons par niveau, erreurs par type, pubs. Rapport de test copiable dans les Réglages |
+| Mesures | Comptées uniquement sur l'appareil, rien n'est envoyé : réussites et abandons par niveau, erreurs par type. Rapport de test copiable dans les Réglages |
 | Sauvegarde | Automatique sur l'appareil ; en ligne et privée pour chaque joueur quand le jeu est ouvert depuis un lien claude.ai par une personne connectée qui a le droit d'écrire ; code de sauvegarde à copier pour changer d'appareil |
 | Formats | Téléphone vertical et horizontal, tablette, pliables (Fold ouvert, format « passeport » quasi carré), ordinateur |
 | HUD | Score avec multiplicateur de combo, boucliers de réputation, progression du service, amendes encaissées, date et zones du jour, chrono par passager, règles actives, outils |
 | Audio | 11 musiques (titre, carte, service, boss, valse de Moscou, berceuse du train de nuit, air oriental du Grand Express, New York, Berlin, Venise, Mars), 2 jingles, une vingtaine de bruitages. Son façon console 8 bits : triangle en escalier 4 bits, bruit LFSR pour la batterie, vibrato, écho, léger crénelage |
-| Monétisation | Pubs récompensées (faire appel, doubler les gains, caméra, renfort, 2e coffre, ticket d'or), interstitielles plafonnées, achats « Sans pub » et tickets d'or |
+| Monétisation | Aucune pub. Gratuit : bus de campagne, Paris et Contrôle du jour. Achat unique « Jeu complet » (Google Play Billing) : 9 villes, Ligne infinie, défi de la semaine, événements, Cauchemar, toutes les tenues. Les joueurs d'avant la 1.5 gardent tout |
 
-Dans l'application Android, les **vraies pubs AdMob** et le formulaire de consentement RGPD de Google sont branchés (identifiants de test par défaut). Dans un navigateur, des pubs de démonstration s'affichent. Les achats sont encore **simulés**. Le guide complet de publication est dans [`store/PUBLIER.md`](store/PUBLIER.md).
+Dans l'application Android, l'achat du **jeu complet** passe par Google Play Billing (produit `jeu_complet`). Dans un navigateur, il est **simulé** (`G.Store.WEB_SIMULATED` dans `www/js/store.js`). Le guide complet de publication est dans [`store/PUBLIER.md`](store/PUBLIER.md).
 
 ## Jouer en ligne
 
@@ -83,7 +83,7 @@ www/
   js/i18n.js         Traduction : détection de la langue, remplacement des textes à l'écran
   js/lang-en.js      Dictionnaires anglais, espagnol, allemand (lang-es.js, lang-de.js) générés depuis le français
   js/util.js         Hasard déterministe, dates, sauvegarde locale, accessibilité
-  js/analytics.js    Statistiques anonymes, rapport de test, envoi Firebase si accepté
+  js/analytics.js    Statistiques de jeu gardées sur l'appareil, rapport de test
   js/cloud.js        Sauvegarde en ligne (lien claude.ai) et code de sauvegarde entre appareils
   js/pwa.js          Installation sur l'écran d'accueil (Android, iPhone), mode testeur
   js/data.js         Villes, règles, passagers spéciaux, boutique, configuration des niveaux
@@ -95,11 +95,11 @@ www/
   js/content.js      Boutique Style, bonus, collections, personnages récurrents, défi de la semaine, événements mensuels, décors des nouvelles villes
   js/docs.js         Rendu des tickets, abonnements, cartes d'identité
   js/audio.js        Moteur audio 8 bits : séquenceur, musiques, bruitages
-  js/ads.js          Publicités : AdMob dans l'appli, démonstration dans le navigateur
+  js/store.js        Jeu complet : achat unique (Google Play Billing), offre, restauration, joueurs d'avant la 1.5
   js/ui.js           Écrans : titre, carte, défi du jour, album, boutique, réglages, résultats
   js/game.js         Boucle d'un service, HUD, outils, tutoriel
   js/main.js         Démarrage
-android/               Projet Android natif (Capacitor) : icônes, écran de démarrage, AdMob, signature de test
+android/               Projet Android natif (Capacitor) : icônes, écran de démarrage, Google Play Billing, signature de test
 tools/store-assets.js  Génère l'icône, la bannière et les captures Play Store
 store/                 Visuels Play Store (français ; en/, es/, de/ pour les autres langues) et guide de publication (PUBLIER.md)
 tests/                 Tests automatiques dans un vrai navigateur (Playwright)
@@ -109,7 +109,7 @@ tests/                 Tests automatiques dans un vrai navigateur (Playwright)
 
 ## Publier sur Google Play (Android) et l'App Store
 
-Tout est détaillé pas à pas dans [`store/PUBLIER.md`](store/PUBLIER.md) : comptes, identifiants AdMob, construction du `.aab`, signature, fiche, questionnaire de sécurité des données, test fermé de 14 jours, achats, statistiques Firebase et iOS.
+Tout est détaillé pas à pas dans [`store/PUBLIER.md`](store/PUBLIER.md) : comptes, produit « Jeu complet », construction du `.aab`, signature, fiche, questionnaire de sécurité des données, test fermé de 14 jours, achats, statistiques Firebase et iOS.
 
 En résumé :
 
@@ -119,10 +119,10 @@ npm run android:init    # une fois
 npm run android:open    # Android Studio > Build > Generate Signed App Bundle
 ```
 
-## Publicités et statistiques
+## Jeu complet et statistiques
 
-- `www/js/ads.js` : `G.AD_CONFIG` contient les identifiants AdMob (ceux de test de Google par défaut, à remplacer). `G.Ads.showRewarded(placement)` renvoie `true` quand AdMob confirme la récompense. `G.Ads.maybeInterstitial(levelIndex)` applique les plafonds : jamais avant le niveau 8, au plus une toutes les 3 minutes et tous les 2 services, jamais juste après une pub récompensée, aucune si « Sans pub » a été acheté.
-- `www/js/analytics.js` : tout est compté sur l'appareil. L'envoi vers Firebase Analytics (ou vers `ENDPOINT`) n'a lieu que si le joueur a accepté.
+- `www/js/store.js` : `G.isFull()` dit si le jeu complet est ouvert ; `G.Store.offer()` affiche l'offre ; `G.Store.buy()` lance l'achat Google Play (ou la simulation dans un navigateur) ; `G.FREE_LEVELS` (20) fixe la partie gratuite.
+- `www/js/analytics.js` : tout est compté sur l'appareil, rien n'est envoyé. Le rapport de test ne part que si le joueur le copie.
 
 ## Tests automatiques
 
@@ -147,5 +147,5 @@ STORE_LANG=en node tools/store-assets.js   # anglais, dans store/en/ (es, de de 
 - Équilibrer la difficulté à partir des rapports des testeurs.
 - 5 à 10 nouveaux passagers spéciaux par mois.
 - Classements en ligne pour le défi du jour et la Ligne infinie (Google Play Jeux) : le record est aujourd'hui seulement local.
-- Achats réels avec Google Play Billing.
+- Créer le produit `jeu_complet` dans la Play Console, puis passer `G.Store.WEB_SIMULATED` à `false` à la sortie.
 - Faire relire les traductions par des locuteurs natifs ; traduire la politique de confidentialité.

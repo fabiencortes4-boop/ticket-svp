@@ -55,6 +55,7 @@ G.Cloud = (() => {
   /* Remplace la partie en cours par une autre et rafraîchit l'écran de menu affiché */
   function adopt(data) {
     G.save = G.mergeSave(data);
+    G.Store.grandfather(); // partie d'avant la 1.5 chargée par code ou en ligne : elle garde tout
     try {
       localStorage.setItem('ticketsvp.save.v1', JSON.stringify(G.save));
     } catch (e) {

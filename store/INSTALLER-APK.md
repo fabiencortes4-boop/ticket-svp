@@ -15,7 +15,11 @@
 (Ne désinstalle pas l'ancienne version : désinstaller efface la partie, sauf si tu as copié ton code de sauvegarde
 dans *Réglages › Sauvegarde*.)
 
-**Les pubs** qui s'affichent sont des pubs de test de Google (marquées « Test Ad ») : elles ne rapportent rien
-et c'est voulu tant que le jeu est en test.
+**Passage à la version Play Store** : avant de désinstaller l'APK de test, copie ton code de sauvegarde
+(*Réglages › Sauvegarde › Copier mon code de sauvegarde*) et garde-le (note, message à toi-même…). Dans la version
+Play Store, colle-le dans *Charger un code de sauvegarde* : tu retrouves toute ta partie. Les deux versions ne sont pas
+signées par la même clé, Android refuse d'installer l'une par-dessus l'autre.
 
-Android 5.1 ou plus récent. Pas d'iPhone : sur iPhone, utilise le site et « Sur l'écran d'accueil ».
+Le jeu n'a **aucune pub**. Si tu jouais avant la version 1.5, le jeu complet t'est offert.
+
+Android 6 ou plus récent. Pas d'iPhone : sur iPhone, utilise le site et « Sur l'écran d'accueil ».
