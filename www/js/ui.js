@@ -835,13 +835,40 @@ const SAVE_STATUS = {
   nostore: '<b>Partie non enregistrée ici</b><small>Ce navigateur efface les données (navigation privée, navigateur intégré d\'une appli…). Ouvre le lien dans Safari ou Chrome, ou copie ton code de sauvegarde avant de quitter.</small>',
 };
 
+/* Politique de confidentialité, affichée dans le jeu : un lien vers privacy.html ne s'ouvre ni dans
+   l'appli Android (pas de nouvel onglet dans la WebView) ni dans la version claude.ai (fichier absent).
+   Même texte que www/privacy.html, la page publique demandée par Google Play. */
+G.PRIVACY = [
+  ['En bref', "Ticket SVP ! ne demande ni compte, ni nom, ni adresse e-mail. Ta progression est enregistrée uniquement sur ton appareil."],
+  ['Données enregistrées sur ton appareil', "Étoiles, pièces, réglages, album et statistiques de jeu sont stockés localement. Ils ne quittent pas ton appareil, sauf pour les cas décrits ci-dessous. Désinstaller le jeu ou utiliser « Réinitialiser la progression » les efface."],
+  ['Statistiques anonymes (avec ton accord)', "Si tu acceptes, le jeu envoie des événements de jeu anonymes : niveau commencé, réussi ou abandonné, type d'erreur, pub regardée. Ils servent uniquement à équilibrer la difficulté. Ils sont traités par Google Firebase Analytics, qui peut associer un identifiant d'application aléatoire. Tu peux retirer ton accord à tout moment dans Réglages › Données."],
+  ['Publicité', "Le jeu est gratuit et financé par la publicité via Google AdMob. AdMob peut utiliser l'identifiant publicitaire de ton appareil et des cookies pour afficher et mesurer les annonces. Dans l'Union européenne, un formulaire de consentement Google s'affiche avant toute publicité personnalisée ; tu peux refuser et ne recevoir que des annonces non personnalisées. En savoir plus : policies.google.com/technologies/ads"],
+  ['Enfants', "Le jeu s'adresse à un public de 13 ans et plus. Il ne collecte pas sciemment de données sur les enfants de moins de 13 ans."],
+  ['Tes droits', "Conformément au RGPD, tu peux demander l'accès à tes données ou leur suppression. Comme le jeu ne connaît pas ton identité, le plus simple est de réinitialiser ta progression et de retirer ton accord dans les Réglages."],
+];
+UI.privacy = () => {
+  if (G.$('.modal-privacy')) return;
+  const m = G.modal(`<div class="privacy"><h2>Politique de confidentialité</h2>
+    <p class="privacy-date">Ticket SVP ! · mise à jour le 28 octobre 2026</p>
+    ${G.PRIVACY.map(([h, t]) => `<section class="wn-block"><h3>${h}</h3><p>${t}</p></section>`).join('')}
+    <button class="btn btn-primary" data-ok>Fermer</button></div>`, { cls: 'modal-privacy' });
+  G.$('[data-ok]', m.el).addEventListener('click', () => m.close());
+};
+// Un seul écouteur pour tous les boutons « Politique de confidentialité » (réglages, fenêtre de consentement)
+document.addEventListener('click', (ev) => {
+  if (!ev.target.closest || !ev.target.closest('[data-privacy]')) return;
+  ev.preventDefault();
+  G.Audio.sfx('click');
+  UI.privacy();
+});
+
 /* Premier lancement : consentement aux statistiques (RGPD) */
 UI.consent = () => {
   const s = G.save;
   if (s.settings.consentAsked || G.$('.modal')) return;
   const m = G.modal(`<div class="consent"><h2>Aide-nous à améliorer le jeu</h2>
     <p>Avec ton accord, Ticket SVP ! envoie des statistiques <b>anonymes</b> : niveaux réussis ou ratés, erreurs les plus fréquentes, pubs regardées. Aucun nom, aucun contact, aucun identifiant.</p>
-    <p class="consent-small">Tu peux changer d'avis à tout moment dans les Réglages. <a href="privacy.html" target="_blank" rel="noopener">Politique de confidentialité</a></p>
+    <p class="consent-small">Tu peux changer d'avis à tout moment dans les Réglages. <button class="link-btn" data-privacy>Politique de confidentialité</button></p>
     <button class="btn btn-primary" data-yes>J'accepte</button><button class="btn btn-ghost" data-no>Non merci</button></div>`, { cls: 'modal-consent', dismissable: false });
   const answer = (yes) => {
     s.settings.analytics = yes;
@@ -885,7 +912,7 @@ UI.settings = () => {
         <button class="set-row" data-report>${G.icon('share')}<span>Rapport de test<small>À copier et envoyer au développeur</small></span>${G.icon('back', 'flip')}</button>
         ${G.Install.canOffer() ? `<button class="set-row" data-install>${G.icon('chest')}<span>Installer l'appli<small>Icône sur l'écran d'accueil, jeu hors ligne</small></span>${G.icon('back', 'flip')}</button>` : ''}
         ${G.Tester.on() ? `<button class="set-row" data-tester-off>${G.icon('star')}<span>Quitter le mode testeur<small>Les services réussis restent acquis</small></span>${G.icon('back', 'flip')}</button>` : ''}
-        <a class="set-row" href="privacy.html" target="_blank" rel="noopener">${G.icon('lock')}<span>Politique de confidentialité</span>${G.icon('back', 'flip')}</a>
+        <button class="set-row" data-privacy>${G.icon('lock')}<span>Politique de confidentialité</span>${G.icon('back', 'flip')}</button>
       </div>
       <h3 class="set-h">Statistiques</h3>
       <div class="stat-grid">

@@ -1,6 +1,6 @@
 {
   "name": "ticket-svp",
-  "version": "1.4.1",
+  "version": "1.4.2",
   "private": true,
   "description": "Ticket SVP ! — jeu mobile du contrôleur de métro (HTML5, Capacitor pour Android et iOS).",
   "scripts": {

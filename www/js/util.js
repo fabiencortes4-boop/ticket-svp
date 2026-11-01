@@ -3,7 +3,7 @@
 
 const G = (window.G = window.G || {});
 
-G.VERSION = '1.4.1';
+G.VERSION = '1.4.2';
 
 /* Filet de sécurité : si le jeu plante avant d'avoir affiché la carte (fichiers de deux versions mélangés
    dans le cache, par exemple), on vide le cache hors ligne et on recharge, une seule fois par session. */

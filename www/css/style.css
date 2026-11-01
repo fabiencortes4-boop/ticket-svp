@@ -1341,3 +1341,10 @@ html.calm *, html.calm *::before, html.calm *::after { animation-duration: .01ms
 .lang-pick h2 { display: flex; align-items: center; justify-content: center; gap: 8px; }
 .lang-pick h2 .ic { width: 26px; height: 26px; }
 .lang-list { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+
+/* Politique de confidentialité dans le jeu */
+.modal-privacy .modal-card { z-index: 1; }
+.privacy .privacy-date { text-align: center; font-size: 13px; color: var(--ink-3, #66729a); }
+.privacy .wn-block p { margin: 0; font-size: 14px; }
+.privacy .btn { width: 100%; margin-top: 6px; }
+.link-btn { background: none; border: 0; padding: 0; font: inherit; color: var(--blue, #3a86ff); text-decoration: underline; cursor: pointer; }
