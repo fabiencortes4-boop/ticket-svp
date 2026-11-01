@@ -554,8 +554,14 @@ G.drawScene = (city) => {
     <linearGradient id="${k}-seat" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${G.shade(t.seat, 0.08)}"/><stop offset="1" stop-color="${G.shade(t.seat, -0.08)}"/></linearGradient>
     <radialGradient id="${k}-vig" cx=".5" cy=".42" r=".75"><stop offset=".55" stop-color="#0b1020" stop-opacity="0"/><stop offset="1" stop-color="#0b1020" stop-opacity=".42"/></radialGradient>
     <clipPath id="${k}-win"><rect x="20" y="40" width="360" height="96" rx="18"/></clipPath>
+    <pattern id="${k}-moq" width="12" height="12" patternUnits="userSpaceOnUse"><path d="M6 1.5 L10.5 6 L6 10.5 L1.5 6Z" fill="none" stroke="#fff" stroke-opacity=".2" stroke-width="1.1"/><circle cx="6" cy="6" r="1.3" fill="#000" fill-opacity=".2"/><circle cx="0" cy="0" r="1.1" fill="#fff" fill-opacity=".22"/><circle cx="12" cy="0" r="1.1" fill="#fff" fill-opacity=".22"/><circle cx="0" cy="12" r="1.1" fill="#fff" fill-opacity=".22"/><circle cx="12" cy="12" r="1.1" fill="#fff" fill-opacity=".22"/></pattern>
+    <pattern id="${k}-stud" width="14" height="9" patternUnits="userSpaceOnUse"><circle cx="4" cy="3" r="2.3" fill="#000" fill-opacity=".16"/><circle cx="3.5" cy="2.4" r="1" fill="#fff" fill-opacity=".2"/><circle cx="11" cy="7.5" r="2.3" fill="#000" fill-opacity=".16"/><circle cx="10.5" cy="6.9" r="1" fill="#fff" fill-opacity=".2"/></pattern>
+    ${G.TEX && G.TEX.grain ? `<pattern id="${k}-grain" width="64" height="64" patternUnits="userSpaceOnUse"><image href="${G.TEX.grain}" width="64" height="64"/></pattern>` : ''}
   </defs>
   <rect width="400" height="300" fill="url(#${k}-wall)"/>
+  ${G.TEX && G.TEX.grain ? `<rect width="400" height="300" fill="url(#${k}-grain)"/>` : ''}
+  ${[34, 142, 262].map((y) => `<path d="M0 ${y + 4} L400 ${y + 4}" stroke="#fff" stroke-width="1.2" opacity=".18"/>`).join('')}
+  ${[24, 104, 176, 224, 296, 376].map((x) => `<circle cx="${x}" cy="146" r="1.6" fill="${INK}" opacity=".18"/><circle cx="${x}" cy="256" r="1.6" fill="${INK}" opacity=".18"/>`).join('')}
   ${[60, 140, 260, 340].map((x) => `<path d="M${x} 136 L${x} 262" stroke="${INK}" stroke-width="1.5" opacity=".08"/>`).join('')}
   <rect y="0" width="400" height="34" fill="${t.wall2}"/><path d="M0 34 L400 34" stroke="${INK}" stroke-width="2" opacity=".2"/>
   <g>${[70, 200, 330].map((x) => `<rect x="${x - 40}" y="28" width="80" height="6" rx="3" fill="#fffef2" stroke="${INK}" stroke-width="1.5"/>`).join('')}</g>
@@ -570,9 +576,9 @@ G.drawScene = (city) => {
   ${seated(46, false, 'paper', '#7d8fb8')}${seated(356, true, 'sleep', '#c08a6a')}
   <path d="M0 150 L400 150" stroke="${t.pole}" stroke-width="7"/><path d="M0 148.5 L400 148.5" stroke="#fff" stroke-width="1.5" opacity=".6"/><path d="M0 150 L400 150" stroke="${INK}" stroke-width="2" opacity=".35"/>
   ${[60, 130, 270, 340].map((x) => `<g class="handle" style="transform-origin:${x}px 150px"><path d="M${x} 150 L${x} 168" stroke="${INK}" stroke-width="3"/><circle cx="${x}" cy="176" r="9" fill="none" stroke="${t.pole}" stroke-width="5"/><circle cx="${x}" cy="176" r="9" fill="none" stroke="${INK}" stroke-width="1.5"/></g>`).join('')}
-  <rect x="-10" y="198" width="120" height="60" rx="14" fill="url(#${k}-seat)" stroke="${INK}" stroke-width="4"/><path d="M4 210 L96 210" stroke="#fff" stroke-width="3" opacity=".25" stroke-linecap="round"/><rect x="-10" y="236" width="128" height="30" rx="10" fill="${t.seat2}" stroke="${INK}" stroke-width="4"/>
-  <rect x="290" y="198" width="120" height="60" rx="14" fill="url(#${k}-seat)" stroke="${INK}" stroke-width="4"/><path d="M304 210 L396 210" stroke="#fff" stroke-width="3" opacity=".25" stroke-linecap="round"/><rect x="282" y="236" width="128" height="30" rx="10" fill="${t.seat2}" stroke="${INK}" stroke-width="4"/>
-  <rect x="0" y="262" width="400" height="38" fill="url(#${k}-floor)"/><path d="M0 262 L400 262" stroke="${INK}" stroke-width="4"/>
+  <rect x="-10" y="198" width="120" height="60" rx="14" fill="url(#${k}-seat)" stroke="${INK}" stroke-width="4"/><rect x="-8" y="200" width="116" height="56" rx="12" fill="url(#${k}-moq)"/><path d="M4 210 L96 210" stroke="#fff" stroke-width="3" opacity=".25" stroke-linecap="round"/><rect x="-10" y="236" width="128" height="30" rx="10" fill="${t.seat2}" stroke="${INK}" stroke-width="4"/>
+  <rect x="290" y="198" width="120" height="60" rx="14" fill="url(#${k}-seat)" stroke="${INK}" stroke-width="4"/><rect x="292" y="200" width="116" height="56" rx="12" fill="url(#${k}-moq)"/><path d="M304 210 L396 210" stroke="#fff" stroke-width="3" opacity=".25" stroke-linecap="round"/><rect x="282" y="236" width="128" height="30" rx="10" fill="${t.seat2}" stroke="${INK}" stroke-width="4"/>
+  <rect x="0" y="262" width="400" height="38" fill="url(#${k}-floor)"/><rect x="0" y="264" width="400" height="36" fill="url(#${k}-stud)"/><path d="M0 262 L400 262" stroke="${INK}" stroke-width="4"/>
   <ellipse cx="60" cy="270" rx="70" ry="5" fill="#000" opacity=".18"/><ellipse cx="340" cy="270" rx="70" ry="5" fill="#000" opacity=".18"/>
   ${[-60, -10, 40, 90, 140, 190, 240, 290, 340, 390].map((x) => `<path d="M${200 + (x - 200) * 0.7} 264 L${200 + (x - 200) * 1.25} 300" stroke="${INK}" stroke-width="1.5" opacity=".15"/>`).join('')}
   <path d="M0 280 L400 280" stroke="${INK}" stroke-width="1.2" opacity=".12"/>

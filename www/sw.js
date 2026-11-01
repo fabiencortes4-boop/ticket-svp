@@ -5,7 +5,7 @@
    se recharge sur la nouvelle version complète. */
 'use strict';
 
-const CACHE = 'ticketsvp-1.5.0-4a7eeb19f8';
+const CACHE = 'ticketsvp-1.5.1-a4847873e6';
 const FILES = [
   './', 'index.html', 'manifest.webmanifest', 'privacy.html',
   'icon-512.png', 'icon-192.png', 'apple-touch-icon.png',
@@ -13,7 +13,7 @@ const FILES = [
   'fonts/lilita-one-latin.woff2', 'fonts/lilita-one-latin-ext.woff2',
   'fonts/nunito-latin.woff2', 'fonts/nunito-latin-ext.woff2',
   'fonts/press-start-2p-latin.woff2', 'fonts/press-start-2p-latin-ext.woff2',
-  'js/util.js', 'js/i18n.js', 'js/lang-en.js', 'js/lang-es.js', 'js/lang-de.js', 'js/analytics.js', 'js/cloud.js', 'js/pwa.js', 'js/data.js', 'js/art.js', 'js/art-extra.js',
+  'js/util.js', 'js/textures.js', 'js/i18n.js', 'js/lang-en.js', 'js/lang-es.js', 'js/lang-de.js', 'js/analytics.js', 'js/cloud.js', 'js/pwa.js', 'js/data.js', 'js/art.js', 'js/art-extra.js',
   'js/gen.js', 'js/modes.js', 'js/features.js', 'js/content.js', 'js/docs.js', 'js/audio.js', 'js/store.js',
   'js/ui.js', 'js/game.js', 'js/main.js',
 ];

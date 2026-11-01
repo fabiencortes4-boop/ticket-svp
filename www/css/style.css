@@ -1368,3 +1368,57 @@ html.calm *, html.calm *::before, html.calm *::after { animation-duration: .01ms
 .uni .cos-lock[data-full] { border: 0; font: inherit; cursor: pointer; }
 .sim-buy { text-align: center; }
 .sim-buy .btn { width: 100%; margin-top: 6px; }
+
+/* ---------- Textures (générées par js/textures.js) ---------- */
+:root { --tex-grain: none; --tex-paper: none; --tex-tiles: none; --tex-wood: none; --tex-metal: none; }
+
+/* Fonds des menus : carrelage biseauté du métro */
+.page, .map-scroll {
+  background-color: var(--paper-2);
+  background-image: radial-gradient(ellipse at 50% -10%, rgba(255, 255, 255, .7), transparent 60%), var(--tex-tiles);
+  background-size: 100% 420px, 64px 64px;
+  background-repeat: no-repeat, repeat;
+  background-attachment: local, local;
+}
+.nightmare-map .map-scroll { background-color: #14080c; background-image: radial-gradient(ellipse at 50% 0%, rgba(140, 20, 40, .25), transparent 60%), var(--tex-grain); background-size: 100% 420px, 128px 128px; }
+
+/* Barres : métal brossé et grain */
+.topbar, .hud { background-image: linear-gradient(rgba(255, 255, 255, .07), rgba(0, 0, 0, .12)), var(--tex-metal), var(--tex-grain); background-size: auto, 200px 40px, 128px 128px; }
+.bottomnav { background-image: linear-gradient(rgba(255, 255, 255, 0), rgba(30, 42, 74, .05)), var(--tex-grain); background-size: auto, 128px 128px; }
+
+/* Cartes et fenêtres : papier légèrement fibreux */
+.city, .shop-item, .set-group, .modal-card, .full-card, .daily-card, .chest-card, .mini-card-btn, .wn-block, .uni, .tabs {
+  background-image: var(--tex-paper);
+  background-size: 160px 160px;
+}
+.city-head { background-image: linear-gradient(180deg, rgba(255, 255, 255, .2), rgba(0, 0, 0, .1)), var(--tex-grain); background-size: auto, 128px 128px; }
+.track { background-image: radial-gradient(ellipse at 50% 0%, rgba(255, 255, 255, .35), transparent 70%), var(--tex-paper); background-size: auto, 160px 160px; }
+
+/* Boutons : reflet bombé et grain (la couleur reste celle du bouton) */
+.btn, .tab.on, .nav-btn.on, .node.open .node-n, .node.current .node-n, .act, .tool {
+  background-image: linear-gradient(180deg, rgba(255, 255, 255, .34) 0%, rgba(255, 255, 255, .06) 48%, rgba(0, 0, 0, .05) 52%, rgba(0, 0, 0, .1) 100%), var(--tex-grain);
+  background-size: auto, 128px 128px;
+}
+
+/* Plateau des papiers : vrai bois */
+.docs {
+  background-color: #6b4f3a;
+  background-image: linear-gradient(180deg, rgba(0, 0, 0, .28), rgba(0, 0, 0, 0) 22%, rgba(255, 255, 255, .05) 60%, rgba(0, 0, 0, .18)), var(--tex-wood);
+  background-size: auto, 256px 96px;
+}
+
+/* Tickets et cartes d'identité : grain du papier sous les motifs existants */
+.ticket .tk-body {
+  background-image: repeating-radial-gradient(circle at 110% 120%, transparent 0 .55em, rgba(30, 42, 74, .06) .55em .62em), radial-gradient(rgba(30, 42, 74, .05) 1px, transparent 1px), var(--tex-paper);
+  background-size: auto, 6px 6px, 160px 160px;
+}
+.idcard .id-body {
+  background-image: repeating-linear-gradient(115deg, transparent 0 .9em, rgba(43, 76, 155, .05) .9em 1em), var(--tex-paper);
+  background-size: auto, 160px 160px;
+}
+.ticket { background-image: var(--tex-paper); background-size: 160px 160px; }
+.idcard { background-image: repeating-radial-gradient(circle at 80% 30%, rgba(58, 134, 255, .08) 0 2px, transparent 2px 7px), var(--tex-paper); background-size: auto, 160px 160px; }
+
+.title-screen { background-image: radial-gradient(circle at 78% 12%, rgba(255, 255, 255, .55), transparent 28%), var(--tex-grain), linear-gradient(#5ec8ff 0%, #a9e3ff 55%, #ffe8a3 100%); background-size: auto, 128px 128px, auto; }
+.toolbar { background-color: #6b4f3a; background-image: linear-gradient(180deg, rgba(0, 0, 0, .05), rgba(0, 0, 0, .22)), var(--tex-wood); background-size: auto, 256px 96px; background-position: 0 0, 0 -40px; }
+.actions { background-image: linear-gradient(rgba(255, 255, 255, .06), rgba(0, 0, 0, .14)), var(--tex-metal), var(--tex-grain); background-size: auto, 200px 40px, 128px 128px; }

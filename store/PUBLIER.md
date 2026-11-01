@@ -92,3 +92,18 @@ npm run ios:init && npm run ios:open   # nécessite un Mac avec Xcode
 ```
 
 Créer le même produit non consommable `jeu_complet` dans App Store Connect, puis ajouter `Platform.APPLE_APPSTORE` à `store.initialize` dans `www/js/store.js`.
+
+## 7. Vidéo de gameplay (30 s)
+
+Google Play affiche une vidéo YouTube en haut de la fiche : mets-la en ligne sur YouTube (« non répertoriée » suffit) et colle son adresse dans *Fiche principale › Vidéo*.
+
+Pour la regénérer après un changement du jeu (Playwright et ffmpeg nécessaires) :
+
+```bash
+python3 -m http.server 8765 --directory www &
+node tools/gameplay-video.js fr     # ou en : vraie partie pilotée, images dans dist/video/frames-fr/
+cd dist/video/frames-fr && ffmpeg -f concat -safe 0 -i list.txt -fps_mode cfr -r 30 \
+  -vf "scale=1080:1920,format=yuv420p" -c:v libx264 -crf 18 ../video-sans-son.mp4
+```
+
+La musique s'ajoute ensuite avec ffmpeg (musique du service jusqu'au premier boss, puis musique de boss).
