@@ -1283,7 +1283,7 @@ function finishEndless() {
 function planMiniEvent(count, base) {
   if (count < 5) return;
   const r = G.rng((Math.random() * 1e9) | 0);
-  st.miniEvent = { type: r.pick(['chase', 'inspector', 'pickpocket']), at: base + r.int(1, count - 3), done: false };
+  st.miniEvent = { type: r.pick(['chase', 'inspector', 'pickpocket', 'turnstile', 'doors', 'faint']), at: base + r.int(1, count - 3), done: false };
 }
 
 /* Déclenche l'inspecteur ou le pickpocket avant le passager prévu. Renvoie true s'il prend la main. */
@@ -1305,6 +1305,13 @@ function maybeMiniEvent() {
     runPickpocket(nextPassenger);
     return true;
   }
+  const mini = { turnstile: runTurnstile, doors: runDoors, faint: runFaint }[ev.type];
+  if (mini) {
+    ev.done = true;
+    st.state = 'event';
+    mini(nextPassenger);
+    return true;
+  }
   return false;
 }
 
@@ -1322,6 +1329,185 @@ function endWatch() {
   st.watch = null;
   if (ok) later(() => rewardEvent(300, 12, "Bravo ! L'inspecteur te félicite : +300"), 400);
   else later(() => G.toast(`${G.icon('cross')} L'inspecteur a noté une erreur. Pas de prime cette fois.`), 400);
+}
+
+/* ---------- Trois mini-jeux d'un seul geste (un mini-événement au plus par service) ---------- */
+// Cadre commun : carte « Mini-événement », scène illustrée, consigne ; fin = prime ou petit message
+function miniShell(title, help, stageHtml, cls) {
+  const ov = G.el('div', `mini-ev ${cls}`);
+  ov.innerHTML = `<div class="mini-card"><div class="mini-kicker">Mini-événement</div><h3>${title}</h3>
+    <div class="ms-stage" data-mstage>${stageHtml}</div><p class="ms-help">${help}</p><div class="chase-time"><i data-mtime></i></div></div>`;
+  st.root.appendChild(ov);
+  return { ov, stage: G.$('[data-mstage]', ov), tbar: G.$('[data-mtime]', ov) };
+}
+function miniEnd(ov, done, won, reward, failText, delay = 900) {
+  later(() => {
+    ov.remove();
+    if (!st) return;
+    if (won) rewardEvent(reward[0], reward[1], reward[2]);
+    else if (failText) G.toast(`${G.icon('cross')} ${failText}`);
+    st.state = 'resolve';
+    later(done, 500);
+  }, delay);
+}
+const miniSpeed = () => (st.cfg.nightmare ? 0.75 : st.cfg.g >= 40 ? 0.88 : 1);
+const miniLook = () => G.randomLook(G.rng((Math.random() * 1e9) | 0));
+const uniformOf = () => G.UNIFORMS.find((x) => x.id === G.save.uniform) || G.UNIFORMS[0];
+
+/* 1. Le saut du tourniquet : toucher pile quand il passe au-dessus du portillon */
+function runTurnstile(done) {
+  const look = miniLook();
+  const u = uniformOf();
+  const { ov, stage, tbar } = miniShell("Il saute le portillon !", 'Touche quand il passe au-dessus du portillon (zone verte) pour l’attraper par la ceinture.',
+    `<div class="ts-floor"></div><div class="ts-zone"></div>
+     <svg class="ts-gate" viewBox="0 0 120 90" aria-hidden="true"><rect x="8" y="20" width="22" height="70" rx="5" fill="#9aa6c4" stroke="#1e2a4a" stroke-width="4"/><rect x="90" y="20" width="22" height="70" rx="5" fill="#9aa6c4" stroke="#1e2a4a" stroke-width="4"/><rect x="28" y="36" width="64" height="12" rx="6" fill="#e94f4f" stroke="#1e2a4a" stroke-width="4"/><circle cx="19" cy="30" r="4" fill="#2fbf71"/></svg>
+     <div class="ts-runner" data-trun>${G.drawPerson(look, { mood: 'happy' })}</div>
+     <div class="ts-grab">${G.drawSprintHand('right', u.coat, u.trim)}</div><b class="ms-bubble" data-tbub></b>`, 'ms-turnstile');
+  const D = 1900 * miniSpeed();
+  const runEl = G.$('[data-trun]', ov);
+  const t0 = performance.now() + 350; // il prend son élan
+  let over = false;
+  let phase = 0;
+  const place = (k) => {
+    // de gauche à droite, avec un saut en cloche au-dessus du portillon (au milieu)
+    // en % de sa propre largeur (26 % de la scène) : centre de la scène, donc du portillon, à k = 0,5
+    const x = -100 + k * 485;
+    const jump = Math.max(0, Math.sin(Math.min(1, Math.max(0, (k - 0.3) / 0.4)) * Math.PI));
+    runEl.style.transform = `translateX(${x}%) translateY(${-jump * 62}%) rotate(${jump * 14}deg)`;
+  };
+  const end = (won) => {
+    if (over) return;
+    over = true;
+    stage.classList.add(won ? 'won' : 'lost');
+    G.$('[data-tbub]', ov).textContent = won ? 'Hé ! Lâchez-moi !' : 'Nananère !';
+    if (won) {
+      G.Audio.sfx('stamp');
+      G.vibrate([20, 30, 60]);
+    } else G.Audio.sfx('wrong');
+    miniEnd(ov, done, won, [250, 10, 'Attrapé par la ceinture ! +250'], 'Il a sauté le portillon… Raté !', won ? 1100 : 900);
+  };
+  const tick = (now) => {
+    if (over || !st) return;
+    phase = Math.max(0, (now - t0) / D);
+    place(Math.min(phase, 1.05));
+    tbar.style.transform = `scaleX(${Math.max(0, 1 - phase)})`;
+    stage.classList.toggle('in-zone', phase >= 0.4 && phase <= 0.6);
+    if (phase >= 1.05) return end(false);
+    requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+  ov.addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    if (over || phase <= 0) return;
+    // fenêtre généreuse : il est au-dessus du portillon entre 38 % et 62 % de sa course
+    end(phase >= 0.38 && phase <= 0.62);
+  });
+  G.Audio.sfx('whistle');
+}
+
+/* 2. Les portes qui se ferment : glisser vers le haut pour l'attraper par le sac avant qu'il ne sorte */
+function runDoors(done) {
+  const look = miniLook();
+  const u = uniformOf();
+  const { ov, stage, tbar } = miniShell('Il file vers les portes !', 'Glisse vers le haut pour l’attraper avant qu’il ne sorte.',
+    `<div class="dr-platform"></div><div class="dr-door dr-l"></div><div class="dr-door dr-r"></div>
+     <div class="dr-runner" data-drun>${G.drawBack(look)}<i class="dr-bag"></i></div>
+     <div class="dr-arm">${G.drawSprintHand('left', u.coat, u.trim)}</div>
+     <div class="dr-hint">${G.icon('back', 'up')}</div><b class="ms-bubble" data-dbub></b>`, 'ms-doors');
+  const D = 2300 * miniSpeed();
+  const t0 = performance.now();
+  let over = false;
+  let sy = null;
+  const end = (won) => {
+    if (over) return;
+    over = true;
+    stage.classList.add(won ? 'won' : 'lost');
+    G.$('[data-dbub]', ov).textContent = won ? 'Raaah, mon sac !' : 'Trop tard !';
+    G.Audio.sfx(won ? 'stamp' : 'door');
+    if (won) G.vibrate([20, 30, 60]);
+    // raté : il sort, mais les portes se referment sur son sac (petit lot de consolation)
+    if (won) miniEnd(ov, done, true, [250, 10, 'Rattrapé à la porte ! +250'], '', 1100);
+    else miniEnd(ov, done, true, [50, 2, 'Son sac est resté coincé dans la porte : +50'], '', 1100);
+  };
+  const tick = (now) => {
+    if (over || !st) return;
+    const k = (now - t0) / D;
+    stage.style.setProperty('--k', Math.min(1, k).toFixed(3));
+    tbar.style.transform = `scaleX(${Math.max(0, 1 - k)})`;
+    if (k >= 1) return end(false);
+    requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+  ov.addEventListener('pointerdown', (e) => { sy = e.clientY; });
+  ov.addEventListener('pointermove', (e) => { if (sy != null && sy - e.clientY > 50) { sy = null; end(true); } });
+  ov.addEventListener('pointerup', () => { sy = null; });
+  G.Audio.sfx('alarm');
+}
+
+/* 3. Le faux malaise : garder le doigt appuyé sur lui (on prend son pouls) sans lâcher, même quand il ouvre un œil */
+function runFaint(done) {
+  const look = miniLook();
+  const { ov, stage, tbar } = miniShell('Malaise… vraiment ?', 'Garde le doigt appuyé sur lui pour prendre son pouls, sans lâcher.',
+    `<div class="ft-floor"></div><div class="ft-body" data-fbody>${G.drawPerson(look, { mood: 'sad' })}</div>
+     <div class="ft-ring" data-fring><i></i></div><b class="ms-bubble" data-fbub>Ahhh… je me sens mal…</b>`, 'ms-faint');
+  const NEED = 1900;
+  const TOTAL = 5200 * miniSpeed();
+  const t0 = performance.now();
+  let held = 0;
+  let holding = false;
+  let last = t0;
+  let over = false;
+  let nextPeek = t0 + 700 + Math.random() * 600;
+  const ring = G.$('[data-fring]', ov);
+  const bub = G.$('[data-fbub]', ov);
+  const end = (won) => {
+    if (over) return;
+    over = true;
+    stage.classList.remove('holding', 'peek');
+    stage.classList.add(won ? 'won' : 'lost');
+    const body = G.$('[data-fbody]', ov);
+    body.innerHTML = G.drawPerson(look, { mood: won ? 'angry' : 'happy', holding: won ? 'ticket' : null });
+    bub.textContent = won ? 'Bon… d’accord, voilà mon ticket.' : 'Hop, guéri !';
+    G.Audio.sfx(won ? 'correct' : 'wrong');
+    miniEnd(ov, done, won, [200, 8, 'Faux malaise démasqué ! +200'], 'Il s’est relevé et a filé pendant que tu hésitais.', 1200);
+  };
+  const tick = (now) => {
+    if (over || !st) return;
+    const dt = now - last;
+    last = now;
+    if (holding) held += dt;
+    ring.style.setProperty('--p', Math.min(1, held / NEED).toFixed(3));
+    tbar.style.transform = `scaleX(${Math.max(0, 1 - (now - t0) / TOTAL)})`;
+    // il ouvre un œil de temps en temps pour voir si ça marche
+    if (now > nextPeek) {
+      stage.classList.add('peek');
+      bub.textContent = holding ? '(il entrouvre un œil…)' : 'Ahhh… je me sens mal…';
+      setTimeout(() => stage.classList.remove('peek'), 450);
+      nextPeek = now + 900 + Math.random() * 700;
+    }
+    if (held >= NEED) return end(true);
+    if (now - t0 >= TOTAL) return end(false);
+    requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+  const down = (e) => {
+    e.preventDefault();
+    if (over) return;
+    holding = true;
+    stage.classList.add('holding');
+    G.Audio.sfx('tap');
+  };
+  const up = () => {
+    if (over || !holding) return;
+    holding = false;
+    held = 0; // il faut tenir d'une traite
+    stage.classList.remove('holding');
+  };
+  stage.addEventListener('pointerdown', down);
+  ov.addEventListener('pointerup', up);
+  ov.addEventListener('pointercancel', up);
+  ov.addEventListener('pointerleave', up);
+  G.Audio.sfx('alarm');
 }
 
 /* Course-poursuite : taper vite pour rattraper le fraudeur qui s'enfuit.

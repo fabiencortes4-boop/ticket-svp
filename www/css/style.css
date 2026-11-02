@@ -1593,3 +1593,64 @@ html.calm *, html.calm *::before, html.calm *::after { animation-duration: .01ms
 .mk-detail .btn { width: 100%; }
 .mk-detail { display: flex; flex-direction: column; align-items: stretch; }
 .mk-detail .mk-legend { width: 100%; margin: 0 0 8px !important; }
+
+/* ---------- Mini-jeux : tourniquet, portes, faux malaise ---------- */
+.ms-stage { position: relative; height: 190px; margin: 6px 0 4px; border-radius: 16px; border: 3px solid var(--ink); overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none; }
+.ms-help { margin: 6px 0 2px !important; }
+.ms-bubble { position: absolute; left: 50%; top: 8px; transform: translateX(-50%); padding: 4px 10px; border-radius: 10px; background: #fff; border: 2.5px solid var(--ink); font-size: 13px; white-space: nowrap; opacity: 0; transition: opacity .2s; z-index: 6; }
+.ms-stage.won .ms-bubble, .ms-stage.lost .ms-bubble, .ms-faint .ms-bubble { opacity: 1; }
+
+/* 1. Tourniquet, vu de côté */
+.ms-turnstile .ms-stage { background: linear-gradient(#cfe0f5, #eef4fb 62%, #8a93a8 62.5%, #6f7891); }
+.ts-floor { position: absolute; left: 0; right: 0; bottom: 0; height: 37%; background: repeating-linear-gradient(90deg, transparent 0 38px, rgba(0, 0, 0, .12) 38px 40px); }
+.ts-gate { position: absolute; left: 50%; bottom: 26%; width: 96px; margin-left: -48px; z-index: 2; }
+.ts-zone { position: absolute; left: 50%; top: 4%; width: 100px; height: 66%; margin-left: -50px; border-radius: 14px; background: rgba(47, 191, 113, .14); border: 3px dashed rgba(47, 191, 113, .55); transition: background .1s; }
+.ms-stage.in-zone .ts-zone { background: rgba(47, 191, 113, .42); border-style: solid; }
+.ts-runner { position: absolute; left: 0; bottom: 20%; width: 26%; aspect-ratio: 200 / 246; z-index: 3; will-change: transform; }
+.ts-runner .pax-svg { width: 100%; height: 100%; }
+.ms-turnstile .won .ts-runner .pax-svg, .ms-stage.won .ts-runner .pax-svg { animation: dangle .5s ease-in-out infinite alternate; transform-origin: 50% 0; }
+@keyframes dangle { from { transform: rotate(-9deg); } to { transform: rotate(9deg); } }
+.ts-grab { position: absolute; right: 16%; top: -150px; width: 92px; height: 130px; z-index: 4; transform: rotate(150deg); transition: top .18s cubic-bezier(.2, 1.3, .4, 1); }
+.ts-grab .ch-hand { position: static; width: 100%; height: 100%; }
+.ms-stage.won .ts-grab { top: -18px; }
+.ms-stage.lost .ts-runner { transform: translateX(400%) translateY(0) !important; transition: transform .7s ease-in .15s; }
+
+/* 2. Portes du wagon qui se referment, vues de l'intérieur */
+.ms-doors .ms-stage { --k: 0; background: #2a3560; }
+.dr-platform { position: absolute; left: 22%; right: 22%; top: 10%; bottom: 14%; border-radius: 10px 10px 0 0; background: linear-gradient(#ffe7a3, #f5c55b 60%, #c7a24a); border: 3px solid var(--ink); }
+.dr-door { position: absolute; top: 6%; bottom: 10%; width: 32%; background: linear-gradient(90deg, #b9c3dd, #dfe5f3 50%, #b9c3dd); border: 3px solid var(--ink); z-index: 3; }
+.dr-door::after { content: ''; position: absolute; left: 22%; right: 22%; top: 14%; height: 34%; border-radius: 8px; background: rgba(120, 180, 230, .45); border: 3px solid var(--ink); }
+.dr-l { left: calc(-30% + var(--k) * 48%); border-radius: 0 6px 6px 0; }
+.dr-r { right: calc(-30% + var(--k) * 48%); border-radius: 6px 0 0 6px; }
+.dr-runner { position: absolute; left: 50%; bottom: 12%; height: 62%; aspect-ratio: 200 / 246; z-index: 2; transform: translateX(-50%) scale(calc(1 - var(--k) * .42)); transform-origin: 50% 100%; }
+.dr-runner .back-svg { width: 100%; height: 100%; animation: csRunBody .24s ease-in-out infinite alternate; transform-origin: 50% 100%; }
+.dr-bag { position: absolute; left: 30%; top: 38%; width: 40%; height: 34%; border-radius: 10px; background: #e07a3a; border: 3px solid var(--ink); }
+.dr-arm { position: absolute; left: 50%; bottom: -150px; width: 96px; height: 136px; margin-left: -48px; z-index: 4; transition: bottom .16s cubic-bezier(.2, 1.3, .4, 1); }
+.dr-arm .ch-hand { position: static; width: 100%; height: 100%; }
+.ms-stage.won .dr-arm { bottom: 18px; }
+.ms-stage.won .dr-runner .back-svg { animation: shake .35s 2; }
+.ms-stage.won .dr-l, .ms-stage.won .dr-r { transition: left .2s, right .2s; }
+.ms-stage.lost .dr-runner { opacity: 0; transition: opacity .2s; }
+.ms-stage.lost .dr-bag { opacity: 1; }
+.dr-hint { position: absolute; left: 50%; bottom: 8px; width: 36px; height: 36px; margin-left: -18px; border-radius: 50%; background: var(--yellow); border: 3px solid var(--ink); display: grid; place-items: center; z-index: 5; animation: hintUp .8s ease-in-out infinite; }
+.dr-hint .ic { width: 20px; height: 20px; transform: rotate(90deg); }
+@keyframes hintUp { 50% { transform: translateY(-10px); } }
+.ms-stage.won .dr-hint, .ms-stage.lost .dr-hint { display: none; }
+
+/* 3. Faux malaise : allongé par terre, cercle de pouls qui se remplit tant qu'on appuie */
+.ms-faint .ms-stage { background: linear-gradient(#e9eef8 0 58%, #6b4f3a 58%); cursor: pointer; }
+.ft-floor { position: absolute; left: 0; right: 0; bottom: 0; height: 42%; background-image: var(--tex-wood); background-size: 256px 96px; opacity: .8; }
+.ft-body { position: absolute; left: 50%; top: 26%; height: 108%; aspect-ratio: 200 / 246; transform: translateX(-50%) rotate(-90deg) scale(.62); transform-origin: 50% 50%; z-index: 2; transition: transform .45s cubic-bezier(.2, 1.3, .4, 1); }
+.ft-body .pax-svg { width: 100%; height: 100%; }
+.ms-faint .ft-body .eyes { transform: scaleY(.12); transform-box: fill-box; transform-origin: center; animation: none !important; }
+.ms-stage.peek .ft-body .eyes { transform: scaleY(1); }
+.ms-stage.holding .ft-body { animation: pulseBody .6s ease-in-out infinite; }
+@keyframes pulseBody { 50% { filter: brightness(1.08); } }
+.ft-ring { --p: 0; position: absolute; right: 12px; bottom: 12px; width: 54px; height: 54px; border-radius: 50%; z-index: 4; border: 3px solid var(--ink);
+  background: conic-gradient(var(--red) calc(var(--p) * 360deg), #fff calc(var(--p) * 360deg)); }
+.ft-ring i { position: absolute; inset: 9px; border-radius: 50%; background: #fff; border: 2.5px solid var(--ink); }
+.ft-ring i::after { content: '♥'; position: absolute; inset: 0; display: grid; place-items: center; color: var(--red); font-size: 18px; }
+.ms-stage.holding .ft-ring i::after { animation: beat .5s ease-in-out infinite; }
+@keyframes beat { 50% { transform: scale(1.35); } }
+.ms-stage.won .ft-body, .ms-stage.lost .ft-body { transform: translateX(-50%) rotate(0) scale(.78); top: 0; }
+.ms-stage.lost .ft-body { transform: translateX(80%) rotate(0) scale(.7); opacity: 0; transition: transform .7s ease-in .3s, opacity .4s .6s; }

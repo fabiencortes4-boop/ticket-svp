@@ -303,6 +303,12 @@ G.cosOwned = (cat, id) => {
 
 /* ---------- Nouveautés de chaque version (écran affiché une fois après la mise à jour) ---------- */
 G.WHATS_NEW = [
+  { v: '1.6.0', title: 'Version 1.6 : plus d’action dans le métro', items: [
+    ['hand', 'Trois nouveaux mini-jeux : le saut du portillon, les portes qui se ferment et le faux malaise.'],
+    ['bolt', 'Course-poursuite revue : le fuyard de dos, tes mains de sprinteur… et une claque derrière la tête !'],
+    ['cross', 'Après une erreur, la faute est entourée sur les papiers. En fin de service, le récapitulatif explique chaque erreur.'],
+    ['star', 'Le jeu est plus vivant : textures, wagon qui cahote, pièces qui volent.'],
+  ] },
   { v: '1.5.0', title: 'Version 1.5 : plus aucune pub', items: [
     ['shield', "Fini les publicités : l'appel, la caméra et les bonus sont gratuits ou se paient en tickets d'or gagnés en jouant."],
     ['star', "Merci d'avoir joué aux premières versions : le jeu complet t'est offert, toutes tes villes et tes modes restent à toi."],
