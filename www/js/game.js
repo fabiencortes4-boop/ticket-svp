@@ -83,7 +83,8 @@ Game.start = (cfg) => {
   };
   if (cfg.bossMech === 'uvfake') st.uvLeft = 99;
   if (st.mystery && st.objectives.length === 2) st.objectives[1] = { id: 'mystery', text: 'Démasquer le coupable', done: false };
-  if (!cfg.daily && !cfg.boss && !cfg.event && !cfg.endless && cfg.g >= 6) planMiniEvent(cfg.count, 0);
+  // un mini-événement par service dès le 4e service (pas pendant les boss ni le contrôle du jour)
+  if (!cfg.daily && !cfg.boss && !cfg.event && !cfg.endless && !cfg.newRule && cfg.g >= 3) planMiniEvent(cfg.count, 0);
   if (cfg.daily) {
     G.save.daily.last = G.dayKey();
     G.save.daily.result = null;
@@ -697,7 +698,7 @@ function beginStation() {
   st.stationStartIdx = st.idx;
   st.time = (st.cfg.time + G.save.tools.watch * 0.7 + st.timeBonus) * G.timeScale();
   st.miniEvent = null;
-  if (st.cfg.station >= 3 && Math.random() < 0.35) planMiniEvent(G.STATION_SIZE, st.idx);
+  if (st.cfg.station >= 2 && Math.random() < 0.6) planMiniEvent(G.STATION_SIZE, st.idx);
   // Nouveau décor si la rame change de ville
   st.root.style.setProperty('--line', st.cfg.city.lineColor);
   const old = G.$('.scene-svg', st.el.scene);
@@ -1290,6 +1291,12 @@ function planMiniEvent(count, base) {
 function maybeMiniEvent() {
   const ev = st.miniEvent;
   if (!ev || ev.done || st.idx < ev.at || st.idx >= st.queue.length) return false;
+  // La course-poursuite attend une amende ; s'il n'y en a pas eu dans les 3 passagers suivants,
+  // un autre mini-jeu prend sa place : il y a toujours un mini-événement dans le service
+  if (ev.type === 'chase') {
+    if (st.idx < ev.at + 3) return false;
+    ev.type = G.rng(st.idx * 7 + 1).pick(['turnstile', 'doors', 'faint']);
+  }
   if (ev.type === 'inspector') {
     ev.done = true;
     st.watch = { left: 3, ok: true };

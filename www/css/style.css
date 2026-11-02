@@ -1769,3 +1769,8 @@ html.calm *, html.calm *::before, html.calm *::after { animation-duration: .01ms
 @keyframes ftLeave { 0% { transform: translateX(-50%) rotate(-90deg) scale(.62); top: 6%; } 35% { transform: translateX(-50%) rotate(0) scale(.72); top: -4%; opacity: 1; } 100% { transform: translateX(90%) rotate(0) scale(.7); top: -4%; opacity: 0; } }
 .ft-swirl { top: 18%; }
 .ft-sweat { top: 26%; }
+
+/* ---------- Bulle du passager : à côté de lui, plus jamais sur sa tête (chapeau, cheveux, lunettes visibles) ---------- */
+/* Sous le menton, au niveau du torse : la tête occupe le haut de la scène, la bulle reste en dessous */
+.game-screen .bubble:not(.me) { top: auto; bottom: 14%; left: var(--gutter); max-width: min(44%, 230px); padding: 6px 10px; font-size: clamp(10px, 1.65vh, 14.5px); line-height: 1.2; }
+.game-screen .bubble:not(.me)::after { right: -14px; top: 8px; bottom: auto; }
