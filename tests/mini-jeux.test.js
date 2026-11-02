@@ -25,7 +25,9 @@ out.turnstileWin = await p.evaluate(() => !!document.querySelector('.ms-stage.wo
 out.ts = await after();
 // Tourniquet : trop tôt
 c = await start('turnstile'); await p.waitForTimeout(450); await p.mouse.click(c.x, c.y); await p.waitForTimeout(200);
-out.turnstileEarly = await p.evaluate(() => !!document.querySelector('.ms-stage.lost'));
+out.turnstileEarly = await p.evaluate(() => !!document.querySelector('.ms-stage.missed')); // touché trop tôt : il finit son saut puis nargue
+  await p.waitForTimeout(1800);
+  out.turnstileTaunt = await p.evaluate(() => !!document.querySelector('.ms-stage.lost') || !document.querySelector('.mini-ev'));
 await after();
 // Portes : réussi (glisser vers le haut)
 c = await start('doors'); await p.waitForTimeout(600); 

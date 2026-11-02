@@ -553,6 +553,28 @@ A.sfx = (name, arg) => {
     case 'star':
       [1568, 2093, 2637].forEach((f, i) => voice('pulse25', f, t + i * 0.04, 0.1, 0.07, B));
       break;
+    case 'whoosh': {
+      // bras qui fend l'air : souffle qui monte puis retombe
+      noiseHit(t, 0.18, 0.22, 900, B, 5000);
+      const o = voice('sine', 300, t, 0.16, 0.05, B);
+      o.frequency.exponentialRampToValueAtTime(1200, t + 0.14);
+      break;
+    }
+    case 'thud':
+      // choc sourd (portes qui claquent, chute)
+      kick(t, B, 0.95);
+      noiseHit(t, 0.12, 0.25, 80, B, 900);
+      break;
+    case 'beep':
+      voice('pulse50', 1175, t, 0.07, 0.07, B);
+      break;
+    case 'boing': {
+      const o = voice('square', 180, t, 0.3, 0.08, B);
+      o.frequency.setValueAtTime(180, t);
+      o.frequency.exponentialRampToValueAtTime(520, t + 0.08);
+      o.frequency.exponentialRampToValueAtTime(140, t + 0.28);
+      break;
+    }
     case 'slap': {
       // claque de dessin animé : « PAF » sec (bruit très aigu), choc sourd, puis petit glissando qui tourne la tête
       noiseHit(t, 0.045, 0.6, 1800, B, 9500);

@@ -1332,22 +1332,52 @@ function endWatch() {
 }
 
 /* ---------- Trois mini-jeux d'un seul geste (un mini-événement au plus par service) ---------- */
-// Cadre commun : carte « Mini-événement », scène illustrée, consigne ; fin = prime ou petit message
+// Cadre commun : carte « Mini-événement », scène illustrée, consigne, barre de temps ; fin = tampon + prime
 function miniShell(title, help, stageHtml, cls) {
   const ov = G.el('div', `mini-ev ${cls}`);
   ov.innerHTML = `<div class="mini-card"><div class="mini-kicker">Mini-événement</div><h3>${title}</h3>
-    <div class="ms-stage" data-mstage>${stageHtml}</div><p class="ms-help">${help}</p><div class="chase-time"><i data-mtime></i></div></div>`;
+    <div class="ms-stage" data-mstage>${stageHtml}<b class="ms-result" data-mres></b><i class="ms-flash"></i></div><p class="ms-help">${help}</p><div class="chase-time"><i data-mtime></i></div></div>`;
   st.root.appendChild(ov);
-  return { ov, stage: G.$('[data-mstage]', ov), tbar: G.$('[data-mtime]', ov) };
+  const tbar = G.$('[data-mtime]', ov);
+  return {
+    ov,
+    stage: G.$('[data-mstage]', ov),
+    // barre de temps qui passe à l'orange puis au rouge
+    time(k) {
+      tbar.style.transform = `scaleX(${Math.max(0, k)})`;
+      tbar.parentElement.classList.toggle('low', k < 0.35);
+    },
+  };
 }
-function miniEnd(ov, done, won, reward, failText, delay = 900) {
+// Petit nuage de poussière à un endroit de la scène (en %)
+function msDust(stage, x, y, big) {
+  const d = G.el('i', `ms-dust${big ? ' big' : ''}`);
+  d.style.left = `${x}%`;
+  d.style.top = `${y}%`;
+  stage.appendChild(d);
+  setTimeout(() => d.remove(), 650);
+}
+function miniEnd(ov, done, won, reward, failText, delay = 900, resultText) {
+  const stage = G.$('[data-mstage]', ov);
+  const res = G.$('[data-mres]', ov);
+  if (res) {
+    res.textContent = resultText || (won ? 'Attrapé !' : 'Raté…');
+    res.classList.add(won ? 'win' : 'lose');
+  }
+  if (won && stage) {
+    stage.classList.add('flash');
+    G.FX.sparks(stage, '#ffd23f', 14);
+  }
   later(() => {
-    ov.remove();
-    if (!st) return;
-    if (won) rewardEvent(reward[0], reward[1], reward[2]);
-    else if (failText) G.toast(`${G.icon('cross')} ${failText}`);
-    st.state = 'resolve';
-    later(done, 500);
+    ov.classList.add('out');
+    later(() => {
+      ov.remove();
+      if (!st) return;
+      if (won) rewardEvent(reward[0], reward[1], reward[2]);
+      else if (failText) G.toast(`${G.icon('cross')} ${failText}`);
+      st.state = 'resolve';
+      later(done, 450);
+    }, 220);
   }, delay);
 }
 const miniSpeed = () => (st.cfg.nightmare ? 0.75 : st.cfg.g >= 40 ? 0.88 : 1);
@@ -1358,49 +1388,67 @@ const uniformOf = () => G.UNIFORMS.find((x) => x.id === G.save.uniform) || G.UNI
 function runTurnstile(done) {
   const look = miniLook();
   const u = uniformOf();
-  const { ov, stage, tbar } = miniShell("Il saute le portillon !", 'Touche quand il passe au-dessus du portillon (zone verte) pour l’attraper par la ceinture.',
-    `<div class="ts-floor"></div><div class="ts-zone"></div>
-     <svg class="ts-gate" viewBox="0 0 120 90" aria-hidden="true"><rect x="8" y="20" width="22" height="70" rx="5" fill="#9aa6c4" stroke="#1e2a4a" stroke-width="4"/><rect x="90" y="20" width="22" height="70" rx="5" fill="#9aa6c4" stroke="#1e2a4a" stroke-width="4"/><rect x="28" y="36" width="64" height="12" rx="6" fill="#e94f4f" stroke="#1e2a4a" stroke-width="4"/><circle cx="19" cy="30" r="4" fill="#2fbf71"/></svg>
-     <div class="ts-runner" data-trun>${G.drawPerson(look, { mood: 'happy' })}</div>
+  const { ov, stage, time } = miniShell("Il saute le portillon !", 'Touche quand il passe au-dessus du portillon (zone verte) pour l’attraper par la ceinture.',
+    `<div class="ts-wall"></div><div class="ts-floor"></div><div class="ts-zone"></div>
+     <i class="ts-shadow" data-tshadow></i>
+     <svg class="ts-gate" viewBox="0 0 120 90" aria-hidden="true"><rect x="8" y="20" width="22" height="70" rx="5" fill="#9aa6c4" stroke="#1e2a4a" stroke-width="4"/><rect x="90" y="20" width="22" height="70" rx="5" fill="#9aa6c4" stroke="#1e2a4a" stroke-width="4"/><g class="ts-bar"><rect x="28" y="36" width="64" height="12" rx="6" fill="#e94f4f" stroke="#1e2a4a" stroke-width="4"/></g><circle class="ts-led" cx="19" cy="30" r="4.5" fill="#2fbf71"/></svg>
+     <div class="ts-runner" data-trun><i class="ts-lines"></i>${G.drawPerson(look, { mood: 'happy' })}<i class="ts-taunt">${G.icon('hand')}</i></div>
      <div class="ts-grab">${G.drawSprintHand('right', u.coat, u.trim)}</div><b class="ms-bubble" data-tbub></b>`, 'ms-turnstile');
   const D = 1900 * miniSpeed();
   const runEl = G.$('[data-trun]', ov);
+  const shadow = G.$('[data-tshadow]', ov);
   const t0 = performance.now() + 350; // il prend son élan
   let over = false;
+  let missed = false; // touché à côté : il finit son saut et se moque
   let phase = 0;
+  let puffUp = false;
+  let puffDown = false;
   const place = (k) => {
-    // de gauche à droite, avec un saut en cloche au-dessus du portillon (au milieu)
     // en % de sa propre largeur (26 % de la scène) : centre de la scène, donc du portillon, à k = 0,5
     const x = -100 + k * 485;
     const jump = Math.max(0, Math.sin(Math.min(1, Math.max(0, (k - 0.3) / 0.4)) * Math.PI));
-    runEl.style.transform = `translateX(${x}%) translateY(${-jump * 62}%) rotate(${jump * 14}deg)`;
+    const bob = jump ? 0 : Math.abs(Math.sin(k * 40)) * -5; // petites foulées avant et après le saut
+    runEl.style.transform = `translateX(${x}%) translateY(${-jump * 62 + bob}%) rotate(${jump * 14 - (jump ? 0 : 6)}deg)`;
+    shadow.style.left = `${k * 126 - 13}%`;
+    shadow.style.transform = `scale(${1 - jump * 0.55})`;
+    shadow.style.opacity = String(0.35 - jump * 0.2);
+    const sx = k * 126 - 13 + 13;
+    if (!puffUp && k >= 0.3) { puffUp = true; msDust(stage, sx, 74); G.Audio.sfx('boing'); }
+    if (!puffDown && k >= 0.7) { puffDown = true; msDust(stage, sx, 74, true); }
+    stage.classList.toggle('bar-hit', k > 0.44 && k < 0.58);
   };
-  const end = (won) => {
-    if (over) return;
+  const finish = (won) => {
     over = true;
     stage.classList.add(won ? 'won' : 'lost');
     G.$('[data-tbub]', ov).textContent = won ? 'Hé ! Lâchez-moi !' : 'Nananère !';
     if (won) {
-      G.Audio.sfx('stamp');
+      G.Audio.sfx('slap');
       G.vibrate([20, 30, 60]);
     } else G.Audio.sfx('wrong');
-    miniEnd(ov, done, won, [250, 10, 'Attrapé par la ceinture ! +250'], 'Il a sauté le portillon… Raté !', won ? 1100 : 900);
+    miniEnd(ov, done, won, [250, 10, 'Attrapé par la ceinture ! +250'], 'Il a sauté le portillon… Raté !', won ? 1200 : 1100);
   };
   const tick = (now) => {
     if (over || !st) return;
     phase = Math.max(0, (now - t0) / D);
+    // raté : il atterrit, s'arrête un peu plus loin et fait un pied de nez
+    if (missed && phase >= 0.86) return finish(false);
     place(Math.min(phase, 1.05));
-    tbar.style.transform = `scaleX(${Math.max(0, 1 - phase)})`;
-    stage.classList.toggle('in-zone', phase >= 0.4 && phase <= 0.6);
-    if (phase >= 1.05) return end(false);
+    time(1 - phase);
+    stage.classList.toggle('in-zone', !missed && phase >= 0.4 && phase <= 0.6);
+    if (phase >= 1.05) return finish(false);
     requestAnimationFrame(tick);
   };
   requestAnimationFrame(tick);
   ov.addEventListener('pointerdown', (e) => {
     e.preventDefault();
-    if (over || phase <= 0) return;
+    if (over || missed || phase <= 0) return;
     // fenêtre généreuse : il est au-dessus du portillon entre 38 % et 62 % de sa course
-    end(phase >= 0.38 && phase <= 0.62);
+    if (phase >= 0.38 && phase <= 0.62) finish(true);
+    else {
+      missed = true;
+      stage.classList.add('missed');
+      G.Audio.sfx('whoosh');
+    }
   });
   G.Audio.sfx('whistle');
 }
@@ -1409,31 +1457,44 @@ function runTurnstile(done) {
 function runDoors(done) {
   const look = miniLook();
   const u = uniformOf();
-  const { ov, stage, tbar } = miniShell('Il file vers les portes !', 'Glisse vers le haut pour l’attraper avant qu’il ne sorte.',
-    `<div class="dr-platform"></div><div class="dr-door dr-l"></div><div class="dr-door dr-r"></div>
+  const { ov, stage, time } = miniShell('Il file vers les portes !', 'Glisse vers le haut pour l’attraper avant qu’il ne sorte.',
+    `<div class="dr-platform"><i class="dr-pillar p1"></i><i class="dr-pillar p2"></i><i class="dr-crowd"></i></div>
+     <i class="dr-light"></i>
+     <div class="dr-door dr-l"></div><div class="dr-door dr-r"></div>
      <div class="dr-runner" data-drun>${G.drawBack(look)}<i class="dr-bag"></i></div>
-     <div class="dr-arm">${G.drawSprintHand('left', u.coat, u.trim)}</div>
-     <div class="dr-hint">${G.icon('back', 'up')}</div><b class="ms-bubble" data-dbub></b>`, 'ms-doors');
+     <i class="dr-bag-stuck"></i>
+     <div class="dr-arm"><i class="dr-streak"></i>${G.drawSprintHand('left', u.coat, u.trim)}</div>
+     <div class="dr-hint">${G.icon('back')}</div><b class="ms-bubble" data-dbub></b>`, 'ms-doors');
   const D = 2300 * miniSpeed();
   const t0 = performance.now();
   let over = false;
   let sy = null;
+  let lastBeep = 0;
   const end = (won) => {
     if (over) return;
     over = true;
     stage.classList.add(won ? 'won' : 'lost');
     G.$('[data-dbub]', ov).textContent = won ? 'Raaah, mon sac !' : 'Trop tard !';
-    G.Audio.sfx(won ? 'stamp' : 'door');
-    if (won) G.vibrate([20, 30, 60]);
-    // raté : il sort, mais les portes se referment sur son sac (petit lot de consolation)
-    if (won) miniEnd(ov, done, true, [250, 10, 'Rattrapé à la porte ! +250'], '', 1100);
-    else miniEnd(ov, done, true, [50, 2, 'Son sac est resté coincé dans la porte : +50'], '', 1100);
+    if (won) {
+      G.Audio.sfx('whoosh');
+      later(() => G.Audio.sfx('thud'), 260); // les portes claquent derrière lui
+      G.vibrate([20, 30, 60]);
+      miniEnd(ov, done, true, [250, 10, 'Rattrapé à la porte ! +250'], '', 1300);
+    } else {
+      G.Audio.sfx('thud');
+      // raté : il sort, mais les portes se referment sur son sac (petit lot de consolation)
+      miniEnd(ov, done, true, [50, 2, 'Son sac est resté coincé dans la porte : +50'], '', 1300, 'Sac coincé !');
+    }
   };
   const tick = (now) => {
     if (over || !st) return;
-    const k = (now - t0) / D;
-    stage.style.setProperty('--k', Math.min(1, k).toFixed(3));
-    tbar.style.transform = `scaleX(${Math.max(0, 1 - k)})`;
+    const k = Math.min(1, (now - t0) / D);
+    stage.style.setProperty('--k', k.toFixed(3));
+    stage.classList.toggle('closing', k > 0.7);
+    time(1 - k);
+    // bips de fermeture des portes, de plus en plus rapprochés
+    const gap = k > 0.7 ? 180 : 360;
+    if (now - lastBeep > gap) { lastBeep = now; G.Audio.sfx('beep'); }
     if (k >= 1) return end(false);
     requestAnimationFrame(tick);
   };
@@ -1447,8 +1508,13 @@ function runDoors(done) {
 /* 3. Le faux malaise : garder le doigt appuyé sur lui (on prend son pouls) sans lâcher, même quand il ouvre un œil */
 function runFaint(done) {
   const look = miniLook();
-  const { ov, stage, tbar } = miniShell('Malaise… vraiment ?', 'Garde le doigt appuyé sur lui pour prendre son pouls, sans lâcher.',
-    `<div class="ft-floor"></div><div class="ft-body" data-fbody>${G.drawPerson(look, { mood: 'sad' })}</div>
+  const u = uniformOf();
+  const { ov, stage, time } = miniShell('Malaise… vraiment ?', 'Garde le doigt appuyé sur lui pour prendre son pouls, sans lâcher.',
+    `<div class="ft-floor"></div>
+     <div class="ft-body" data-fbody>${G.drawPerson(look, { mood: 'sad' })}</div>
+     <i class="ft-swirl"></i><i class="ft-sweat"></i>
+     <div class="ft-fingers">${G.drawSprintHand('right', u.coat, u.trim)}</div>
+     <svg class="ft-ecg" viewBox="0 0 120 40" aria-hidden="true"><path d="M0 22 L30 22 L36 22 L40 8 L46 34 L52 14 L56 22 L120 22" fill="none" stroke="#2fbf71" stroke-width="3" stroke-linejoin="round"/></svg>
      <div class="ft-ring" data-fring><i></i></div><b class="ms-bubble" data-fbub>Ahhh… je me sens mal…</b>`, 'ms-faint');
   const NEED = 1900;
   const TOTAL = 5200 * miniSpeed();
@@ -1457,9 +1523,10 @@ function runFaint(done) {
   let holding = false;
   let last = t0;
   let over = false;
-  let nextPeek = t0 + 700 + Math.random() * 600;
+  let nextPeek = t0 + 1100 + Math.random() * 600;
   const ring = G.$('[data-fring]', ov);
   const bub = G.$('[data-fbub]', ov);
+  later(() => G.Audio.sfx('thud'), 420); // il s'écroule
   const end = (won) => {
     if (over) return;
     over = true;
@@ -1468,8 +1535,8 @@ function runFaint(done) {
     const body = G.$('[data-fbody]', ov);
     body.innerHTML = G.drawPerson(look, { mood: won ? 'angry' : 'happy', holding: won ? 'ticket' : null });
     bub.textContent = won ? 'Bon… d’accord, voilà mon ticket.' : 'Hop, guéri !';
-    G.Audio.sfx(won ? 'correct' : 'wrong');
-    miniEnd(ov, done, won, [200, 8, 'Faux malaise démasqué ! +200'], 'Il s’est relevé et a filé pendant que tu hésitais.', 1200);
+    G.Audio.sfx(won ? 'boing' : 'wrong');
+    miniEnd(ov, done, won, [200, 8, 'Faux malaise démasqué ! +200'], 'Il s’est relevé et a filé pendant que tu hésitais.', 1300, won ? 'Démasqué !' : 'Envolé…');
   };
   const tick = (now) => {
     if (over || !st) return;
@@ -1477,12 +1544,12 @@ function runFaint(done) {
     last = now;
     if (holding) held += dt;
     ring.style.setProperty('--p', Math.min(1, held / NEED).toFixed(3));
-    tbar.style.transform = `scaleX(${Math.max(0, 1 - (now - t0) / TOTAL)})`;
-    // il ouvre un œil de temps en temps pour voir si ça marche
+    time(1 - (now - t0) / TOTAL);
+    // il entrouvre un œil de temps en temps pour voir si ça marche
     if (now > nextPeek) {
       stage.classList.add('peek');
       bub.textContent = holding ? '(il entrouvre un œil…)' : 'Ahhh… je me sens mal…';
-      setTimeout(() => stage.classList.remove('peek'), 450);
+      setTimeout(() => stage.classList.remove('peek'), 520);
       nextPeek = now + 900 + Math.random() * 700;
     }
     if (held >= NEED) return end(true);
