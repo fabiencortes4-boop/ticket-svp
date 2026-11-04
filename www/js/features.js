@@ -1,4 +1,4 @@
-/* Ticket SVP ! — histoire, événements saisonniers, missions du jour, défis entre amis,
+/* Frodeo — histoire, événements saisonniers, missions du jour, défis entre amis,
    petites infractions, mécaniques de boss, mini-événements et fiches de règles lisibles */
 'use strict';
 

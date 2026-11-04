@@ -1,4 +1,4 @@
-/* Ticket SVP ! — mesures d'audience anonymes.
+/* Frodeo — mesures d'audience anonymes.
    Les événements sont toujours comptés sur l'appareil (aucun identifiant, rien ne sort du téléphone) :
    ils servent au rapport que les testeurs peuvent copier depuis les Réglages.
    Depuis la version 1.5, plus aucun envoi : rien ne quitte l'appareil, sauf si le joueur copie lui-même son rapport. */
@@ -121,7 +121,7 @@ G.Analytics = (() => {
     /* Rapport lisible que le testeur peut copier-coller */
     report() {
       if (!data) load();
-      const lines = [`Ticket SVP ! ${G.VERSION} — rapport de test`, `Sessions : ${data.sessions} · temps de jeu : ${Math.round((data.playMs + Date.now() - sessionStart) / 60000)} min`];
+      const lines = [`Frodeo ${G.VERSION} — rapport de test`, `Sessions : ${data.sessions} · temps de jeu : ${Math.round((data.playMs + Date.now() - sessionStart) / 60000)} min`];
       const keys = Object.keys(data.levels).sort((a, b) => (+a) - (+b));
       if (keys.length) {
         lines.push('', 'Niveau : essais / réussis / ratés / abandons · étoiles max · erreurs moy. · durée moy.');

@@ -1,4 +1,4 @@
-/* Ticket SVP ! — boucle de jeu d'un service et HUD */
+/* Frodeo — boucle de jeu d'un service et HUD */
 'use strict';
 
 const Game = (G.Game = {});

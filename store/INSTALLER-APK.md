@@ -1,4 +1,4 @@
-# Installer Ticket SVP ! sur Android sans le Play Store (APK)
+# Installer Frodeo sur Android sans le Play Store (APK)
 
 À envoyer aux testeurs avec le fichier `ticket-svp.apk` (https://fabiencortes4-boop.github.io/ticket-svp/ticket-svp.apk).
 
@@ -9,7 +9,7 @@
 4. Touche **Installer**.
 5. Si **Play Protect** affiche « Appli non reconnue » ou « Appli non sécurisée » : c'est normal pour une appli
    qui ne vient pas du Play Store. Touche *Plus de détails › Installer quand même*.
-6. Lance **Ticket SVP !** depuis son icône.
+6. Lance **Frodeo** depuis son icône.
 
 **Mettre à jour** : installe simplement le nouvel APK par-dessus. La partie est conservée.
 (Ne désinstalle pas l'ancienne version : désinstaller efface la partie, sauf si tu as copié ton code de sauvegarde

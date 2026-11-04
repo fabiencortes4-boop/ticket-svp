@@ -1,4 +1,4 @@
-/* Ticket SVP ! — génération des passagers et arbitrage (fraudeur ou non) */
+/* Frodeo — génération des passagers et arbitrage (fraudeur ou non) */
 'use strict';
 
 G.randomLook = (r) => {

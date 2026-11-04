@@ -1,4 +1,6 @@
-# Ticket SVP !
+# Frodeo
+
+*Anciennement « Ticket SVP ! ». L'adresse du site et l'identifiant de l'appli Android (`com.ticketsvp.game`) gardent l'ancien nom pour que les parties en cours ne soient pas perdues.*
 
 Jeu mobile en français, anglais, espagnol et allemand : tu es contrôleur de métro et tu as quelques secondes par passager pour démasquer les fraudeurs. Essai gratuit (le bus et Paris), puis le jeu complet en un seul achat, sans aucune publicité.
 

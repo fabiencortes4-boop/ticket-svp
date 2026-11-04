@@ -1,4 +1,4 @@
-/* Ticket SVP ! — déblocage du jeu complet (achat unique, sans pub).
+/* Frodeo — déblocage du jeu complet (achat unique, sans pub).
    Gratuit : le bus de campagne, Paris (20 services) et le Contrôle du jour.
    Jeu complet : les 9 autres villes, la Ligne infinie, le défi de la semaine, le mode Cauchemar,
    les événements mensuels et toutes les tenues.

@@ -1,7 +1,7 @@
 {
   "id": "./",
-  "name": "Ticket SVP ! — Contrôleur de métro",
-  "short_name": "Ticket SVP",
+  "name": "Frodeo — Contrôleur de métro",
+  "short_name": "Frodeo",
   "description": "Contrôle les tickets, démasque les fraudeurs… et garde ton calme !",
   "lang": "fr",
   "start_url": "./index.html",

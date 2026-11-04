@@ -1,5 +1,5 @@
 #!/bin/bash
-# Lance tous les tests automatiques de Ticket SVP ! dans un vrai navigateur (Playwright + Chromium).
+# Lance tous les tests automatiques de Frodeo dans un vrai navigateur (Playwright + Chromium).
 # Prérequis, une fois : npm install && npx playwright install chromium
 # Usage : ./tests/run.sh            (tous les tests)
 #         ./tests/run.sh cauchemar  (seulement les tests dont le nom contient « cauchemar »)

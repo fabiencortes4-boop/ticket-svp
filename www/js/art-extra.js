@@ -1,4 +1,4 @@
-/* Ticket SVP ! — graphismes supplémentaires : chapeaux, tenues, accessoires, coiffures,
+/* Frodeo — graphismes supplémentaires : chapeaux, tenues, accessoires, coiffures,
    éléments de costume et paysages des nouvelles villes. Branché sur art.js via G.EXTRA. */
 'use strict';
 

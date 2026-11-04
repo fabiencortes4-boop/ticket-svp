@@ -1,4 +1,4 @@
-/* Ticket SVP ! — rendu des documents : ticket, abonnement, carte d'identité */
+/* Frodeo — rendu des documents : ticket, abonnement, carte d'identité */
 'use strict';
 
 function stampSvg(kind, city, time, dateTxt) {

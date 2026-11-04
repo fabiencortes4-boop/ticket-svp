@@ -1,4 +1,4 @@
-/* Ticket SVP ! — installation sur l'écran d'accueil (Android et iPhone), hors ligne, et mode testeur. */
+/* Frodeo — installation sur l'écran d'accueil (Android et iPhone), hors ligne, et mode testeur. */
 'use strict';
 
 G.Install = (() => {
@@ -38,7 +38,7 @@ G.Install = (() => {
     window.addEventListener('appinstalled', () => {
       deferred = null;
       G.Analytics.screen('installed');
-      G.toast(`${G.icon('check')} Ticket SVP ! est installé sur ton écran d'accueil`, 'good');
+      G.toast(`${G.icon('check')} Frodeo est installé sur ton écran d'accueil`, 'good');
       G.$$('[data-install]').forEach((b) => b.remove());
     });
   }
@@ -53,7 +53,7 @@ G.Install = (() => {
       <ol>
         <li><span class="ios-step">${share}</span><div><b>Appuie sur Partager</b><small>En bas de Safari (en haut sur iPad), ou dans le menu de Chrome</small></div></li>
         <li><span class="ios-step">${add}</span><div><b>Choisis «&nbsp;Sur l'écran d'accueil&nbsp;»</b><small>Fais défiler la liste si tu ne le vois pas</small></div></li>
-        <li><span class="ios-step ios-app"><img src="apple-touch-icon.png" alt=""></span><div><b>Touche «&nbsp;Ajouter&nbsp;»</b><small>Puis lance Ticket SVP ! depuis son icône</small></div></li>
+        <li><span class="ios-step ios-app"><img src="apple-touch-icon.png" alt=""></span><div><b>Touche «&nbsp;Ajouter&nbsp;»</b><small>Puis lance Frodeo depuis son icône</small></div></li>
       </ol></div>`, { cls: 'modal-install' });
   }
 

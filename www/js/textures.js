@@ -1,4 +1,4 @@
-/* Ticket SVP ! — textures générées par le code au démarrage (aucun fichier image).
+/* Frodeo — textures générées par le code au démarrage (aucun fichier image).
    Petites tuiles dessinées une fois dans un canvas, puis posées en fond répété via des variables CSS :
    --tex-grain   grain fin (surfaces peintes, boutons, barres)
    --tex-paper   papier fibreux (tickets, cartes, fenêtres)

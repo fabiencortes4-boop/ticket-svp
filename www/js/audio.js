@@ -1,4 +1,4 @@
-/* Ticket SVP ! — moteur audio 8 bits (WebAudio).
+/* Frodeo — moteur audio 8 bits (WebAudio).
    Musiques et bruitages synthétisés en direct : aucun fichier son, aucun droit à payer.
    Canaux façon console rétro : 2 voix « pulse », 1 triangle (basse), 1 bruit (batterie). */
 'use strict';

@@ -1,4 +1,4 @@
-/* Ticket SVP ! — démarrage */
+/* Frodeo — démarrage */
 'use strict';
 
 (function boot() {

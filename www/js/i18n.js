@@ -1,4 +1,4 @@
-/* Ticket SVP ! — traduction (anglais, espagnol, allemand).
+/* Frodeo — traduction (anglais, espagnol, allemand).
    Le jeu est écrit en français. Chaque texte affiché est traduit au moment où il apparaît à l'écran :
    d'abord par correspondance exacte, puis par gabarit (« Score à battre : {0} »), les parties variables
    étant elles-mêmes traduites. Les dictionnaires sont dans js/lang-*.js. */

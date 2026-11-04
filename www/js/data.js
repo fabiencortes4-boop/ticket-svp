@@ -1,4 +1,4 @@
-/* Ticket SVP ! — données du jeu : villes, règles, passagers spéciaux, boutique */
+/* Frodeo — données du jeu : villes, règles, passagers spéciaux, boutique */
 'use strict';
 
 G.CITIES = [

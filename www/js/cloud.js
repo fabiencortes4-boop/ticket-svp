@@ -1,4 +1,4 @@
-/* Ticket SVP ! — sauvegarde en ligne et code de sauvegarde.
+/* Frodeo — sauvegarde en ligne et code de sauvegarde.
    Ouvert depuis un lien claude.ai par une personne connectée qui a le droit d'écrire, le jeu range la partie
    dans l'espace privé de ce joueur (personne d'autre ne peut la lire, pas même le propriétaire du lien) :
    elle le suit d'un appareil à l'autre. Sinon, la partie reste dans le navigateur, et le code de sauvegarde

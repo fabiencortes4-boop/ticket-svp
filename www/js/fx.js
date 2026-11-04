@@ -1,4 +1,4 @@
-/* Ticket SVP ! — petits effets animés : pièces qui volent, étincelles, éclair rouge.
+/* Frodeo — petits effets animés : pièces qui volent, étincelles, éclair rouge.
    Tout est en CSS (transform/opacity, peu coûteux) ; rien ne s'affiche si le joueur a choisi
    « Réduire les animations » ou si le téléphone demande moins de mouvement. */
 'use strict';

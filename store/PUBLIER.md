@@ -1,4 +1,4 @@
-# Publier Ticket SVP ! — pas à pas
+# Publier Frodeo — pas à pas
 
 Ce guide part du dépôt tel qu'il est. Les étapes marquées **(toi)** demandent un compte ou un ordinateur avec Android Studio.
 
@@ -52,7 +52,7 @@ Le jeu garde l'achat sur le téléphone et le redemande à Google Play à chaque
 
 ## 4. Fiche Play Store
 
-- **Nom** : Ticket SVP ! — Contrôleur de métro
+- **Nom** : Frodeo — Contrôleur de métro
 - **Description courte** (80 car.) : Contrôle les tickets, démasque les fraudeurs… et garde ton calme !
 - **Description longue** : voir le document de conception. Mentionner : « Essai gratuit : le bus et Paris. Jeu complet en un seul achat, sans pub. »
 - **Visuels** : `store/icon-512.png`, `store/feature-graphic-1024x500.png`, `store/screenshot-*.png` (et `store/en/`, `store/es/`, `store/de/` pour les fiches traduites).

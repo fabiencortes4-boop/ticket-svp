@@ -5,8 +5,8 @@ const path = require('path');
 const LANG = process.argv[2] || 'fr';
 const OUT = path.join(__dirname, '..', 'dist', 'video', 'frames-' + LANG); // images + list.txt pour ffmpeg (voir store/PUBLIER.md)
 const CAP = {
-  fr: { c1: 'Tu es contrôleur de métro', c2: 'Vérifie les tickets…', c3: '…et démasque les fraudeurs !', c4: 'Arrache les fausses moustaches', c5: 'Traque les faux tampons sous UV', c6: 'Contrôle dans le noir', c7: '11 villes · 11 boss', end1: 'Essai gratuit', end2: 'Jeu complet : 2,99 €', end3: 'Sans pub · Sans collecte de données', end4: 'Bientôt sur Google Play' },
-  en: { c1: "You're a metro ticket inspector", c2: 'Check the tickets…', c3: '…and catch the fare dodgers!', c4: 'Rip off the fake moustaches', c5: 'Hunt fake stamps under UV', c6: 'Inspect in the dark', c7: '11 cities · 11 bosses', end1: 'Free to try', end2: 'Full game: €2.99', end3: 'No ads · No data collected', end4: 'Coming soon to Google Play' },
+  fr: { c1: 'Tu es contrôleur de métro', c2: 'Vérifie les tickets…', c3: '…et démasque les fraudeurs !', c4: 'Arrache les fausses moustaches', c5: 'Traque les faux tampons sous UV', c6: 'Contrôle dans le noir', c7: '11 villes · 11 boss', c8: 'Rattrape les fuyards !', end1: 'Essai gratuit', end2: 'Jeu complet : 2,99 €', end3: 'Sans pub · Sans collecte de données', end4: 'Bientôt sur Google Play' },
+  en: { c1: "You're a metro ticket inspector", c2: 'Check the tickets…', c3: '…and catch the fare dodgers!', c4: 'Rip off the fake moustaches', c5: 'Hunt fake stamps under UV', c6: 'Inspect in the dark', c7: '11 cities · 11 bosses', c8: 'Chase down the runaways!', end1: 'Free to try', end2: 'Full game: €2.99', end3: 'No ads · No data collected', end4: 'Coming soon to Google Play' },
 }[LANG];
 
 (async () => {
@@ -93,7 +93,7 @@ const CAP = {
   // 1. Écran titre
   scene('title');
   await cap(CAP.c1);
-  await W(3000);
+  await W(2200);
   // 2. Paris : trois décisions
   cut();
   await cap('');
@@ -101,13 +101,26 @@ const CAP = {
   await waitInspect();
   scene('paris');
   await cap(CAP.c2);
-  await W(500);
+  await W(150);
   // premier passager en règle, deuxième fraudeur : on force pour montrer les deux gestes
   await p.evaluate(() => { const s = G.Game.debugState(); });
   await decideRight();
   await cap(CAP.c3);
   await decideRight();
-  await decideRight();
+  // 2 bis. Course-poursuite : amende, il s'enfuit, on le rattrape… et la claque
+  cut();
+  await cap('');
+  await startLevel(16);
+  await p.evaluate(() => { const s = G.Game.debugState(); s.miniEvent = { type: 'chase', at: 0, done: false }; s.queue[0].fraud = true; });
+  await waitInspect();
+  scene('chase');
+  await cap(CAP.c8);
+  await W(350);
+  await swipe(-1);
+  await p.waitForSelector('.mini-ev.chase', { timeout: 6000 });
+  await W(500);
+  for (let i = 0; i < 8; i++) { await p.click('[data-ctap]').catch(() => {}); await W(110); }
+  await W(1150);
   // 3. Boss de Paris : fausse moustache
   cut();
   await cap('');
@@ -144,7 +157,7 @@ const CAP = {
   scene('dark');
   await cap(CAP.c6);
   const box = await p.$eval('.docs', (e) => { const r = e.getBoundingClientRect(); return { x: r.left, y: r.top, w: r.width, h: r.height }; });
-  for (let i = 0; i <= 46; i++) { await p.mouse.move(box.x + 20 + (box.w - 40) * (0.5 - 0.5 * Math.cos(i / 46 * Math.PI * 2)), box.y + box.h * (0.35 + 0.3 * Math.sin(i / 46 * Math.PI))); await W(55); }
+  for (let i = 0; i <= 32; i++) { await p.mouse.move(box.x + 20 + (box.w - 40) * (0.5 - 0.5 * Math.cos(i / 32 * Math.PI * 2)), box.y + box.h * (0.35 + 0.3 * Math.sin(i / 32 * Math.PI))); await W(55); }
   // 6. Venise et Mars : 11 villes, 11 boss
   cut();
   await cap('');
@@ -152,12 +165,12 @@ const CAP = {
   await waitInspect();
   scene('venise');
   await cap(CAP.c7);
-  await W(1500);
+  await W(1300);
   cut();
   await startLevel(109);
   await waitInspect();
   scene('mars');
-  await W(1500);
+  await W(1300);
   // 7. Carte de fin
   await cap('');
   await p.evaluate((C) => {
@@ -166,7 +179,7 @@ const CAP = {
     document.body.appendChild(e); requestAnimationFrame(() => e.classList.add('on'));
   }, CAP);
   scene('end');
-  await W(4600);
+  await W(4300);
   cut();
   await cdp.send('Page.stopScreencast');
 

@@ -1,4 +1,4 @@
-/* Ticket SVP ! — écrans de menu : titre, carte, défi du jour, album, boutique, réglages, résultats */
+/* Frodeo — écrans de menu : titre, carte, défi du jour, album, boutique, réglages, résultats */
 'use strict';
 
 const UI = (G.UI = {});
@@ -554,7 +554,7 @@ UI.daily = () => {
 function shareText() {
   const r = G.save.daily.result;
   const grid = r.grid.split('').map((c) => (c === 'X' ? '❌' : c === 'S' ? '⭐' : '✅')).join('');
-  return `🎫 Ticket SVP ! · Contrôle du jour #${G.dailyNumber()}\n${grid}\n${r.correct}/${r.total} · ${G.fmt(r.score)} pts · série ${G.save.daily.streak} 🔥${r.slow ? ' 🐢' : ''}`;
+  return `🎫 Frodeo · Contrôle du jour #${G.dailyNumber()}\n${grid}\n${r.correct}/${r.total} · ${G.fmt(r.score)} pts · série ${G.save.daily.streak} 🔥${r.slow ? ' 🐢' : ''}`;
 }
 
 function shareDaily(preview) {
@@ -708,7 +708,7 @@ UI.shop = (tab = 'tools', sub = 'stamp') => {
           <button class="btn btn-primary" data-full>Voir l'offre · ${G.Store.priceLabel()}</button>
         </div>`;
     body += `<button class="link-btn shop-restore" data-restore>Restaurer un achat</button>
-      <p class="shop-note">Pas de pub dans Ticket SVP ! : les tickets d'or se gagnent en jouant (missions, boss, coffre du jour, défis).</p>`;
+      <p class="shop-note">Pas de pub dans Frodeo : les tickets d'or se gagnent en jouant (missions, boss, coffre du jour, défis).</p>`;
   }
   root.innerHTML = `${topBar({ title: 'Boutique' })}
     <div class="page">
@@ -839,7 +839,7 @@ const SAVE_STATUS = {
    l'appli Android (pas de nouvel onglet dans la WebView) ni dans la version claude.ai (fichier absent).
    Même texte que www/privacy.html, la page publique demandée par Google Play. */
 G.PRIVACY = [
-  ['En bref', "Ticket SVP ! ne contient aucune publicité et ne collecte aucune donnée personnelle. Pas de compte, pas de nom, pas d'adresse e-mail : ta progression reste sur ton appareil."],
+  ['En bref', "Frodeo ne contient aucune publicité et ne collecte aucune donnée personnelle. Pas de compte, pas de nom, pas d'adresse e-mail : ta progression reste sur ton appareil."],
   ['Données enregistrées sur ton appareil', "Étoiles, pièces, réglages, album et statistiques de jeu sont stockés uniquement sur ton appareil. Personne d'autre n'y a accès. Désinstaller le jeu ou utiliser « Réinitialiser la progression » les efface."],
   ['Code de sauvegarde et rapport de test', "Le code de sauvegarde et le rapport de test ne sont créés que si tu les demandes, et ne partent que si tu choisis toi-même de les copier et de les envoyer."],
   ['Achat du jeu complet', "Le paiement est entièrement géré par Google Play. Le jeu reçoit seulement la confirmation que l'achat a eu lieu, jamais tes coordonnées ni tes informations de paiement."],
@@ -849,7 +849,7 @@ G.PRIVACY = [
 UI.privacy = () => {
   if (G.$('.modal-privacy')) return;
   const m = G.modal(`<div class="privacy"><h2>Politique de confidentialité</h2>
-    <p class="privacy-date">Ticket SVP ! · mise à jour le 1er novembre 2026</p>
+    <p class="privacy-date">Frodeo · mise à jour le 1er novembre 2026</p>
     ${G.PRIVACY.map(([h, t]) => `<section class="wn-block"><h3>${h}</h3><p>${t}</p></section>`).join('')}
     <button class="btn btn-primary" data-ok>Fermer</button></div>`, { cls: 'modal-privacy' });
   G.$('[data-ok]', m.el).addEventListener('click', () => m.close());
@@ -906,7 +906,7 @@ UI.settings = () => {
         <button class="set-row" data-howto>${G.icon('hand')}<span>Comment jouer</span>${G.icon('back', 'flip')}</button>
         <button class="set-row danger" data-reset>${G.icon('cross')}<span>Réinitialiser la progression</span></button>
       </div>
-      <p class="credits">Ticket SVP ! v${G.VERSION}<br>Personnages, décors et musique 8 bits générés par le code : 100 % originaux et libres de droits.<br>Polices Lilita One, Nunito et Press Start 2P sous licence SIL OFL.<br>Aucune publicité, aucune donnée collectée.${G.Store.native ? '' : " Dans cette version de test, l'achat du jeu complet est simulé."}</p>
+      <p class="credits">Frodeo v${G.VERSION}<br>Personnages, décors et musique 8 bits générés par le code : 100 % originaux et libres de droits.<br>Polices Lilita One, Nunito et Press Start 2P sous licence SIL OFL.<br>Aucune publicité, aucune donnée collectée.${G.Store.native ? '' : " Dans cette version de test, l'achat du jeu complet est simulé."}</p>
     </div>
     ${bottomNav('settings')}`;
   G.showScreen(root);
@@ -1073,12 +1073,12 @@ UI.results = (r) => {
   if (rt) rt.addEventListener('click', () => leave(() => G.Game.start(again())));
   const ch = G.$('[data-challenge]', m.el);
   if (ch) ch.addEventListener('click', () => {
-    const txt = `🎫 Ticket SVP ! Bats mon score de ${G.fmt(r.score)} points sur « ${cfg.label} ».\nCode défi : ${r.challengeCode}`;
+    const txt = `🎫 Frodeo Bats mon score de ${G.fmt(r.score)} points sur « ${cfg.label} ».\nCode défi : ${r.challengeCode}`;
     copyText(txt, G.$('[data-cprev]', m.el));
   });
   const ws = G.$('[data-wshare]', m.el);
   if (ws) ws.addEventListener('click', () => {
-    const txt = `🎫 Ticket SVP ! Défi de la semaine : ${G.fmt(r.score)} points. Tu fais mieux ?\nCode : ${r.weekly.code} (à entrer dans « Défi d'un ami »)`;
+    const txt = `🎫 Frodeo Défi de la semaine : ${G.fmt(r.score)} points. Tu fais mieux ?\nCode : ${r.weekly.code} (à entrer dans « Défi d'un ami »)`;
     copyText(txt, G.$('[data-wprev]', m.el));
   });
   const dl = G.$('[data-daily]', m.el);

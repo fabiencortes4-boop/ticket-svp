@@ -1,11 +1,11 @@
-/* Ticket SVP ! — service worker : le jeu installé marche hors ligne.
+/* Frodeo — service worker : le jeu installé marche hors ligne.
    Tous les fichiers d'une version sont gardés ensemble dans un seul cache, et le jeu n'est servi que depuis
    ce cache : jamais un mélange de deux versions. Quand une nouvelle version est publiée, ce fichier change
    (nom du cache), le navigateur l'installe en arrière-plan en téléchargeant tout d'un coup, puis la page
    se recharge sur la nouvelle version complète. */
 'use strict';
 
-const CACHE = 'ticketsvp-1.6.2-56d4c4e48d';
+const CACHE = 'ticketsvp-1.7.0-c40afa89c7';
 const FILES = [
   './', 'index.html', 'manifest.webmanifest', 'privacy.html',
   'icon-512.png', 'icon-192.png', 'apple-touch-icon.png',

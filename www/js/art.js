@@ -1,4 +1,4 @@
-/* Ticket SVP ! — graphismes 2D originaux, dessinés en SVG par le code.
+/* Frodeo — graphismes 2D originaux, dessinés en SVG par le code.
    Style cartoon : contours épais, couleurs vives, grosses têtes. */
 'use strict';
 
@@ -651,14 +651,13 @@ G.drawChest = (open) => `<svg viewBox="0 0 120 100" class="chest-svg" aria-hidde
 </svg>`;
 
 /* Logo du titre */
-G.drawLogo = () => `<svg viewBox="0 0 360 170" class="logo-svg" aria-label="Ticket SVP !" role="img">
+G.drawLogo = () => `<svg viewBox="0 0 360 170" class="logo-svg" aria-label="Frodeo" role="img">
   <defs><mask id="perfo"><rect width="360" height="170" fill="#fff"/><circle cx="0" cy="85" r="18" fill="#000"/><circle cx="360" cy="85" r="18" fill="#000"/></mask></defs>
   <g transform="rotate(-4 180 85)">
     <rect x="14" y="18" width="332" height="134" rx="14" fill="#1e2a4a" mask="url(#perfo)" transform="translate(6 8)"/>
     <rect x="14" y="18" width="332" height="134" rx="14" fill="#ffd23f" stroke="${INK}" stroke-width="6" mask="url(#perfo)"/>
     <path d="M270 26 L270 144" stroke="${INK}" stroke-width="4" stroke-dasharray="8 8"/>
-    <text x="142" y="84" text-anchor="middle" class="logo-t1">TICKET</text>
-    <text x="142" y="132" text-anchor="middle" class="logo-t2">SVP !</text>
+    <text x="142" y="112" text-anchor="middle" class="logo-word" textLength="232" lengthAdjust="spacingAndGlyphs"><tspan class="logo-t1">FRO</tspan><tspan class="logo-t2">DEO</tspan></text>
     <rect x="284" y="44" width="48" height="82" rx="6" fill="#fff" stroke="${INK}" stroke-width="4"/>
     <circle cx="308" cy="85" r="18" fill="none" stroke="#e94f4f" stroke-width="5"/><path d="M298 85 L305 92 L318 78" fill="none" stroke="#e94f4f" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
     <rect x="24" y="138" width="240" height="7" rx="3" fill="#1e2a4a" opacity=".85"/>

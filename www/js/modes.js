@@ -1,4 +1,4 @@
-/* Ticket SVP ! — interrogatoire, objectifs par service, mode Ligne infinie */
+/* Frodeo — interrogatoire, objectifs par service, mode Ligne infinie */
 'use strict';
 
 /* Stations de chaque ligne, de la zone 1 à la zone 5 (pour les réponses des passagers) */

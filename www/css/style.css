@@ -1,4 +1,4 @@
-/* Ticket SVP ! — feuille de style
+/* Frodeo — feuille de style
    Direction : cartoon à contours épais, bleu marine du métro + jaune ticket, HUD en police pixel. */
 :root {
   --ink: #1e2a4a;
@@ -161,6 +161,8 @@ button:focus-visible, summary:focus-visible { outline: 3px solid var(--yellow); 
 .logo-svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 6px 0 rgba(30, 42, 74, .25)); }
 .logo-t1 { font-family: var(--f-display); font-size: 58px; fill: var(--ink); letter-spacing: 2px; }
 .logo-t2 { font-family: var(--f-display); font-size: 52px; fill: var(--red); letter-spacing: 3px; }
+.logo-word { font-family: var(--f-display); font-size: 80px; letter-spacing: 1px; }
+.logo-word .logo-t1, .logo-word .logo-t2 { font-size: 80px; letter-spacing: 1px; }
 @keyframes logoIn { from { transform: scale(.4) rotate(-12deg); opacity: 0; } }
 .title-tag { position: relative; margin: 2px 0 0; font-family: var(--f-display); font-size: 18px; color: var(--ink); background: var(--paper); padding: 4px 14px; border-radius: 999px; border: 3px solid var(--ink); }
 .title-city { position: absolute; left: 0; right: 0; bottom: 150px; height: 210px; pointer-events: none; }
